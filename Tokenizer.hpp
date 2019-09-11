@@ -5,7 +5,31 @@
 #include <array>
 #include <sstream>
 #include <algorithm>
-enum class tokentype
+#include <string>
+#include <fstream>
+#include <streambuf>
+
+
+inline std::vector<std::string> split_string(const std::string& str,
+	const std::string& delimiter)
+{
+	std::vector<std::string> strings;
+
+	std::string::size_type pos = 0;
+	std::string::size_type prev = 0;
+	while ((pos = str.find(delimiter, prev)) != std::string::npos)
+	{
+		strings.push_back(str.substr(prev, pos - prev));
+		prev = pos + delimiter.size();
+	}
+
+	// To get the last substring (or only, if delimiter is not found)
+	strings.push_back(str.substr(prev));
+
+	return strings;
+}
+
+enum class token_type
 {
 	invalid,
 	space,
@@ -25,41 +49,41 @@ enum class tokentype
 	tokentype_end
 };
 
-const char* to_string(tokentype e)
+const char* to_string(token_type e)
 {
 	switch (e)
 	{
-	case tokentype::invalid: return "invalid";
-	case tokentype::space: return "space";
-	case tokentype::lparen: return "lparen";
-	case tokentype::rparen: return "rparen";
-	case tokentype::lbrace: return "lbrace";
-	case tokentype::rbrace: return "rbrace";
-	case tokentype::lbracket: return "lbracket";
-	case tokentype::rbracket: return "rbracket";
-	case tokentype::colon: return "colon";
-	case tokentype::semicolon: return "semicolon";
-	case tokentype::equal: return "equal";
-	case tokentype::symbol: return "symbol";
-	case tokentype::asterisk: return "asterisk";
-	case tokentype::tokentype_end: return "tokentype_end";
-	case tokentype::carriagereturn: return "carriagereturn";
-	case tokentype::newline: return "newline";
+	case token_type::invalid: return "invalid";
+	case token_type::space: return "space";
+	case token_type::lparen: return "lparen";
+	case token_type::rparen: return "rparen";
+	case token_type::lbrace: return "lbrace";
+	case token_type::rbrace: return "rbrace";
+	case token_type::lbracket: return "lbracket";
+	case token_type::rbracket: return "rbracket";
+	case token_type::colon: return "colon";
+	case token_type::semicolon: return "semicolon";
+	case token_type::equal: return "equal";
+	case token_type::symbol: return "symbol";
+	case token_type::asterisk: return "asterisk";
+	case token_type::tokentype_end: return "tokentype_end";
+	case token_type::carriagereturn: return "carriagereturn";
+	case token_type::newline: return "newline";
 	default: return "unknown";
 	}
 }
 
 
 
-class token
+class token_delim
 {
 public:
-	token(std::string delim, const tokentype type): delim_(std::move(delim)), type_(type)
+	token_delim(std::string delim, const token_type type): delim_(std::move(delim)), type_(type)
 	{
 		
 	}
 
-	[[nodiscard]] tokentype get_type() const { return type_;  }
+	[[nodiscard]] token_type get_type() const { return type_;  }
 
 	[[nodiscard]] const std::string& get_delim() const { return delim_; }
 
@@ -73,25 +97,26 @@ public:
 	
 private:
 	std::string delim_;
-	tokentype type_;
+	token_type type_;
 };
 
-class parsedtoken
+class token
 {
 public:
-	parsedtoken(const std::uint32_t pos, const tokentype type, std::string text): pos_(pos), type_(type), text_(
-		                                                                              std::move(text))
+	token(const std::uint32_t pos, const std::uint32_t line, const token_type type, std::string text): pos_(pos), line_(line), type_(type), text_(
+		                                                                              std::move(text)), valid_(true)
 	{
 
 	}
 
-	parsedtoken(): pos_(-1), type_(tokentype::invalid), text_("")
+	token(): pos_(-1), line_(-1), type_(token_type::invalid), text_(""), valid_(false)
 	{
+		
 	}
 
 	[[nodiscard]] std::string to_string_simple() const
 	{
-		if (type_ == tokentype::symbol)
+		if (type_ == token_type::symbol)
 		{
 			std::stringstream ret;
 			ret << ::to_string(type_) << "(" << text_ << ")";
@@ -107,7 +132,7 @@ public:
 	
 	[[nodiscard]] std::string to_string() const
 	{
-		if(type_ == tokentype::symbol)
+		if(type_ == token_type::symbol)
 		{
 			std::stringstream ret;
 			ret << "Token of type " << ::to_string(type_) << " " << text_ << " found at pos " << pos_;
@@ -126,7 +151,7 @@ public:
 		return text_.length();
 	}
 
-	[[nodiscard]] tokentype get_type() const
+	[[nodiscard]] token_type get_type() const
 	{
 		return type_;
 	}
@@ -135,12 +160,32 @@ public:
 	{
 		return text_;
 	}
+
+	[[nodiscard]] std::uint32_t get_line() const
+	{
+		return line_;
+	}
+
+	[[nodiscard]] std::uint32_t get_pos() const
+	{
+		return pos_;
+	}
+
+	[[nodiscard]] bool is_valid() const
+	{
+		return valid_;
+	}
 	
 private:
-	std::uint32_t pos_{};
-	tokentype type_;
+	std::uint32_t pos_;
+	std::uint32_t line_;
+	token_type type_;
 	std::string text_;
+	bool valid_;
 };
+
+using token_array = std::vector<token>;
+using tokendelim_array = std::vector<token_delim>;
 
 class tokenizer
 {
@@ -148,63 +193,86 @@ public:
 
 	tokenizer();
 
-	std::vector<parsedtoken> tokenize(const std::string& input);
+	token_array tokenize(const std::string& raw_input);
+
+	token_array tokenize(std::ifstream& file);
 	
 private:
 
-	std::size_t next_token_pos(const std::string& original, const std::size_t offset, parsedtoken& parsed);
-	
-	std::vector<token> tokens_;
+	std::size_t next_token_pos(const std::string& original, const std::size_t offset, token& parsed);
+	tokendelim_array tokenDelims_;
+	std::uint32_t line_;
 };
 
 inline tokenizer::tokenizer()
 {
-	tokens_.emplace_back(" ", tokentype::space);
-	tokens_.emplace_back("(", tokentype::lparen);
-	tokens_.emplace_back(")", tokentype::rparen);
-	tokens_.emplace_back("{", tokentype::lbrace);
-	tokens_.emplace_back("}", tokentype::rbrace);
-	tokens_.emplace_back("[", tokentype::lbracket);
-	tokens_.emplace_back("]", tokentype::rbracket);
-	tokens_.emplace_back(":", tokentype::colon);
-	tokens_.emplace_back(";", tokentype::semicolon);
-	tokens_.emplace_back("=", tokentype::equal);
-	tokens_.emplace_back("*", tokentype::asterisk);
-	tokens_.emplace_back("\r", tokentype::carriagereturn);
-	tokens_.emplace_back("\n", tokentype::newline);
+	line_ = 1;
+	
+	tokenDelims_.emplace_back(" ", token_type::space);
+	tokenDelims_.emplace_back("(", token_type::lparen);
+	tokenDelims_.emplace_back(")", token_type::rparen);
+	tokenDelims_.emplace_back("{", token_type::lbrace);
+	tokenDelims_.emplace_back("}", token_type::rbrace);
+	tokenDelims_.emplace_back("[", token_type::lbracket);
+	tokenDelims_.emplace_back("]", token_type::rbracket);
+	tokenDelims_.emplace_back(":", token_type::colon);
+	tokenDelims_.emplace_back(";", token_type::semicolon);
+	tokenDelims_.emplace_back("=", token_type::equal);
+	tokenDelims_.emplace_back("*", token_type::asterisk);
+	tokenDelims_.emplace_back("\r", token_type::carriagereturn);
+	tokenDelims_.emplace_back("\n", token_type::newline);
 }
 
 
-inline std::vector<parsedtoken> tokenizer::tokenize(const std::string& input)
+inline token_array tokenizer::tokenize(const std::string& raw_input)
 {
-	std::vector<parsedtoken> output;
+	token_array output;
 
-	auto last_token_end_pos = 0;
-	
-	for(std::uint32_t i = 0; i < input.length();)
-	{
-		parsedtoken found_token;
+	auto lines = split_string(raw_input, "\n");
 
-		const auto found_token_pos = next_token_pos(input, last_token_end_pos, found_token);
+	for (auto& line : lines) {
 
-		if (found_token_pos != -1)
+		auto last_token_end_pos = 0;
+
+		for (std::uint32_t i = 0; i < line.length();)
 		{
-			if(found_token_pos > last_token_end_pos)
-			{
-				// symbol lives between tokens
-				output.emplace_back(last_token_end_pos, tokentype::symbol, input.substr(last_token_end_pos, found_token_pos + found_token.length() - last_token_end_pos - 1));
-			}
+			token found_token;
 
-			output.emplace_back(found_token);			
-			last_token_end_pos = found_token_pos + found_token.length();
-			i = last_token_end_pos;
+			const auto found_token_pos = next_token_pos(line, last_token_end_pos, found_token);
+
+			if (found_token_pos != -1)
+			{
+				if (found_token_pos > last_token_end_pos)
+				{
+					// symbol lives between tokens
+					output.emplace_back(last_token_end_pos, line_, token_type::symbol, line.substr(last_token_end_pos, found_token_pos + found_token.length() - last_token_end_pos - 1));
+				}
+
+				output.emplace_back(found_token);
+				last_token_end_pos = found_token_pos + found_token.length();
+				i = last_token_end_pos;
+			}
+			else
+			{
+				// No end token exist. Symbol is the last bit of the line.
+				output.emplace_back(last_token_end_pos, line_, token_type::symbol, line.substr(last_token_end_pos, line.size() - last_token_end_pos));
+				i += line.size() - last_token_end_pos;
+			}
 		}
+
+		line_++;
 	}
-	
+		
 	return output;
 }
 
-inline std::size_t tokenizer::next_token_pos(const std::string& original, const std::size_t offset, parsedtoken& parsed)
+inline token_array tokenizer::tokenize(std::ifstream& file)
+{
+	return tokenize(std::string((std::istreambuf_iterator<char>(file)),
+		std::istreambuf_iterator<char>()));
+}
+
+inline std::size_t tokenizer::next_token_pos(const std::string& original, const std::size_t offset, token& parsed)
 {
 	const auto input = original.substr(offset);
 	
@@ -212,12 +280,12 @@ inline std::size_t tokenizer::next_token_pos(const std::string& original, const 
 	{
 		const std::string_view view(input.c_str() + i, input.length() - i);
 
-		for (auto& token : tokens_)
+		for (auto& token_delim : tokenDelims_)
 		{
-			const auto match_length = token.match(view);
+			const auto match_length = token_delim.match(view);
 			if (match_length > 0)
 			{
-				parsed = parsedtoken(i + offset, token.get_type(), token.get_delim());
+				parsed = token(i + offset, line_, token_delim.get_type(), token_delim.get_delim());
 				return i + offset;
 			}
 		}
@@ -225,3 +293,89 @@ inline std::size_t tokenizer::next_token_pos(const std::string& original, const 
 
 	return -1;
 }
+
+class token_iterator
+{
+public:
+
+	token_iterator(token_array tokens, std::uint32_t token_index = -1) : tokens_(std::move(tokens)), token_index_(token_index)
+	{
+		for (auto it = tokens_.begin(); it != tokens_.end(); ++it) {
+			// remove odd numbers
+			if ((*it).get_type() == token_type::space) {
+				tokens_.erase(it--);
+			}
+		}
+	}
+
+	token& here()
+	{
+		return get_or_invalid(token_index_);
+	}
+	
+	token& peek_next()
+	{
+		return get_or_invalid(token_index_ + 1);
+	}
+
+	token& next()
+	{
+		token_index_++;
+		return get_or_invalid(token_index_);
+	}
+
+	token& peek_before()
+	{
+		return get_or_invalid(token_index_ - 1);
+	}
+	
+	token& before()
+	{
+		token_index_--;
+		return get_or_invalid(token_index_);
+	}
+
+	token& get_offset(const std::int32_t offset)
+	{
+		return get_or_invalid(token_index_ + offset);
+	}
+
+	token& find_next(const token_type type)
+	{
+		while(next().is_valid())
+		{
+			if (here().get_type() == type)
+				return here();
+		}
+		return invalid_token_;
+	}
+
+	token& jump_to(const std::uint32_t token_index)
+	{
+		if (token_index < 0 || token_index >= tokens_.size())
+			return invalid_token_;
+
+		token_index_ = token_index;
+
+		return get_or_invalid(token_index_);
+	}
+	
+	token& get_or_invalid(const std::uint32_t index)
+	{
+		if(index < 0 || index >= tokens_.size())
+			return invalid_token_;
+
+		return tokens_[index];
+	}
+
+	[[nodiscard]] std::uint32_t get_index() const
+	{
+		return token_index_;
+	}
+
+private:
+	token_array tokens_;
+	token invalid_token_;
+	std::uint32_t token_index_;
+};
+
