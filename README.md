@@ -1,8 +1,13 @@
 # A VERY WIP custom scripting language lexer, parser and evaluator.
 ## What is this written in?
-C++
+C++, targeting C++17
 ## Will this ever go anywhere?
 Probably not. Fun project I am working on towards the end of Summer 2019.
+## Purpose
+I wanted to write a custom programming language. Not because this is or will be useful as an actual progamming language, but because I wanted to figure out how to make one.
+
+I want this to be useable, however, meaning speed is an important factor.
+
 ## What language does this parse?
 One that I wanted to make for the fun of making it.  Most likely has no real world usecase.
 ### What is the langauge like?
@@ -13,6 +18,7 @@ It borrows alot of the its syntax from the great language that is Kotlin. Kotlin
 3. Evaluate external functional code. Interfacing with the parent C++ application through vm function calls. 
 4. Custom types like classes and structures.
 5. Will have to figure that out if we every get here.
+6. Integrate with LLVM or transcode to C++. JIT compilation would be nice.
 ## Syntax
 ```
 
