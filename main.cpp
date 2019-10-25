@@ -8,13 +8,20 @@ int main()
 {
 	auto token_gen = tokenizer();
 
-	//auto tokens = token_gen.tokenize(
-		//"val somevar = 5;\r\n");
-
-	std::ifstream inputFile(R"(C:\Users\madmin\source\repos\script\lang.cs)");
-
 	try {
-		parse_tokens(token_gen.tokenize(inputFile));
+		auto tree = token_node();
+
+
+		
+		auto tokens = token_gen.tokenize("5");
+
+		auto iter = token_iterator(tokens);
+
+		tree.parse(tokens);
+
+		std::cout << tree.eval() << std::endl;
+		
+		tree.print();
 	}
 	catch(const std::exception& e)
 	{

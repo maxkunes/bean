@@ -46,6 +46,9 @@ enum class token_type
 	asterisk,
 	carriagereturn,
 	newline,
+	plus,
+	minus,
+	forward_slash,
 	tokentype_end
 };
 
@@ -69,6 +72,9 @@ const char* to_string(token_type e)
 	case token_type::tokentype_end: return "tokentype_end";
 	case token_type::carriagereturn: return "carriagereturn";
 	case token_type::newline: return "newline";
+	case token_type::plus: return "plus";
+	case token_type::minus: return "minus";
+	case token_type::forward_slash: return "forward slash";
 	default: return "unknown";
 	}
 }
@@ -100,7 +106,7 @@ private:
 	token_type type_;
 };
 
-class token
+class token : public std::enable_shared_from_this<token>
 {
 public:
 	token(const std::uint32_t pos, const std::uint32_t line, const token_type type, std::string text): pos_(pos), line_(line), type_(type), text_(
@@ -220,6 +226,9 @@ inline tokenizer::tokenizer()
 	tokenDelims_.emplace_back("=", token_type::equal);
 	tokenDelims_.emplace_back("*", token_type::asterisk);
 	tokenDelims_.emplace_back("\r", token_type::carriagereturn);
+	tokenDelims_.emplace_back("+", token_type::plus);
+	tokenDelims_.emplace_back("-", token_type::minus);
+	tokenDelims_.emplace_back("/", token_type::forward_slash);
 	tokenDelims_.emplace_back("\n", token_type::newline);
 }
 
@@ -240,7 +249,7 @@ inline token_array tokenizer::tokenize(const std::string& raw_input)
 
 			const auto found_token_pos = next_token_pos(line, last_token_end_pos, found_token);
 
-			if (found_token_pos != -1)
+			if (found_token_pos != std::uint32_t(-1))
 			{
 				if (found_token_pos > last_token_end_pos)
 				{
@@ -301,7 +310,6 @@ public:
 	token_iterator(token_array tokens, std::uint32_t token_index = -1) : tokens_(std::move(tokens)), token_index_(token_index)
 	{
 		for (auto it = tokens_.begin(); it != tokens_.end(); ++it) {
-			// remove odd numbers
 			if ((*it).get_type() == token_type::space) {
 				tokens_.erase(it--);
 			}
@@ -373,6 +381,77 @@ public:
 		return token_index_;
 	}
 
+	token_iterator splice(const std::uint32_t start, const std::uint32_t end)
+	{
+		return token_iterator(token_array(tokens_.begin() + start, tokens_.begin() + end));
+	}
+
+	token_array get_tokens() const
+	{
+		return tokens_;
+	}
+
+	std::size_t get_size() const
+	{
+		return tokens_.size();
+	}
+
+	std::uint32_t find_rightmost_of(const token_type type)
+	{
+		for(int i = get_size() - 1; i >= 0; i--)
+		{
+			if (get_or_invalid(i).get_type() == type)
+				return i;
+		}
+		return -1;
+	}
+
+	std::uint32_t find_rightmost_of(const std::vector<token_type> types)
+	{
+		std::uint32_t maxOffset = -1;
+		
+		for (auto type : types)
+		{
+			const auto off = find_rightmost_of(type);
+
+			if(off != std::uint32_t(-1))
+			{
+				if (maxOffset == std::uint32_t(-1))
+				{
+					maxOffset = off;
+				}
+
+				if (off > maxOffset)
+					maxOffset = off;
+			}
+		}
+		return maxOffset;
+	}
+	
+	std::uint32_t find_rightmost_of_pemdas()
+	{
+		const std::vector<std::vector<token_type>> typeOrder = {
+			{
+				token_type::plus,
+				token_type::minus
+			},
+			{
+				token_type::asterisk,
+				token_type::forward_slash
+			}
+		};
+
+		for (const auto& i : typeOrder)
+		{
+			const auto offset = find_rightmost_of(i);
+
+			if (offset != std::uint32_t(-1))
+				return offset;
+		}
+
+		return -1;
+	}
+	
 private:
 	token_array tokens_;
 	token invalid_token_;
