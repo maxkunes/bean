@@ -6,7 +6,8 @@ static double eval_simple(const std::string& expr)
 {
 	auto token_gen = tokenizer();
 	auto tree = token_node();
-	tree.parse(token_gen.tokenize(expr));
+	auto tokens = token_gen.tokenize(expr);
+	tree.parse(tokens);
 	return tree.eval();
 }
 
@@ -50,6 +51,12 @@ TEST_CASE("Evaluator", "[eval]") {
 		REQUIRE(are_same(eval_simple("(3 + 2) * 4"), 20));
 		REQUIRE(are_same(eval_simple("((3 + 2) * 4)"), 20));
 		REQUIRE(are_same(eval_simple("(4 + 5 * (2 + 3) * 5) * 5 * (4/3)"), 860));
+	}
+
+	SECTION("Exponents", "[exponents]")
+	{
+		REQUIRE(are_same(eval_simple("(3^2)"), 9));
+		REQUIRE(are_same(eval_simple("(3 pow 2)"), 9));
 	}
 	
 }

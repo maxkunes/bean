@@ -49,7 +49,9 @@ enum class token_type
 	plus,
 	minus,
 	forward_slash,
-	tokentype_end
+	tokentype_end,
+	carrot,
+	pow,
 };
 
 inline const char* to_string(token_type e)
@@ -75,6 +77,8 @@ inline const char* to_string(token_type e)
 	case token_type::plus: return "plus";
 	case token_type::minus: return "minus";
 	case token_type::forward_slash: return "forward slash";
+	case token_type::carrot: return "carrot";
+	case token_type::pow: return "pow";
 	default: return "unknown";
 	}
 }
@@ -229,6 +233,8 @@ inline tokenizer::tokenizer()
 	tokenDelims_.emplace_back("+", token_type::plus);
 	tokenDelims_.emplace_back("-", token_type::minus);
 	tokenDelims_.emplace_back("/", token_type::forward_slash);
+	tokenDelims_.emplace_back("^", token_type::carrot);
+	tokenDelims_.emplace_back("pow", token_type::pow);
 	tokenDelims_.emplace_back("\n", token_type::newline);
 }
 
@@ -470,6 +476,10 @@ public:
 			{
 				token_type::asterisk,
 				token_type::forward_slash
+			},
+			{
+				token_type::carrot,
+				token_type::pow
 			}
 		};
 

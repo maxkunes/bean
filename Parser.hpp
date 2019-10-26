@@ -160,6 +160,24 @@ public:
 
 			return lhVal / rhVal;
 		}
+		else if (op.get_type() == token_type::pow)
+		{
+			auto lhVal = lh->eval();
+			auto rhVal = rh->eval();
+
+			std::cout << "Raising " << lhVal << " to the power of " << rhVal << std::endl;
+
+			return powf(lhVal, rhVal);
+		}
+		else if (op.get_type() == token_type::carrot)
+		{
+			auto lhVal = lh->eval();
+			auto rhVal = rh->eval();
+
+			std::cout << "Raising " << lhVal << " to the power of " << rhVal << std::endl;
+
+			return powf(lhVal , rhVal);
+		}
 		else if(op.get_type() == token_type::symbol)
 		{
 			std::stringstream stream;

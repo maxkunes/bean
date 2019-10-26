@@ -19,6 +19,17 @@ It borrows alot of the its syntax from the great language that is Kotlin. Kotlin
 4. Custom types like classes and structures.
 5. Will have to figure that out if we every get here.
 6. Integrate with LLVM or transcode to C++. JIT compilation would be nice.
+
+## What can it do right now?
+Right now it can interpret and run mathmatical expressions. From `2 + 2` to `(4 + 5 * (2 + 3) * 5) * 5 * (4/3)` and a few operators in between.
+This is important as the code to parse an expression due to operator precedence is built, working and tested which will be used by the ast builder for the language.
+The precedence followed is PEMDAS left to right. Future operator precedence for non mathmatical operations will likely be based off the C/C++ standard. Examples of those types of operators would be the xor and shift operators.
+1. Parentheses
+2. Exponents (Experimental and likely to be removed ^ and pow operators)
+3. Muliplication and Division (Precedence is left-right)
+4. Addition and Subtraction (Precedence is left-right)
+
+
 ## Syntax
 ```
 
@@ -27,7 +38,7 @@ extern fun print_int(arg : int);
 extern fun print_generic(arg : Any);
 
 // Creates a constant variable called some_val with the type int and the value of 35.
-val some_val : int = 15 + 20;
+val some_val : int = (4 + 5 * (2 + 3) * 5) * 5 * (4/3);
 
 // Creates a non constant variable called some_var with the implicit type int and value of 35.
 var some_var = 15 + 20;
