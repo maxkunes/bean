@@ -13,9 +13,14 @@ int main()
 
 
 		
-		auto tokens = token_gen.tokenize("5");
+		//auto tokens = token_gen.tokenize("(4 + 5 * (2 + 3) * 5) * 5 * (4/3)");
+		auto tokens = token_gen.tokenize("(3) + (6)");
 
+		
 		auto iter = token_iterator(tokens);
+
+		auto rightmost = iter.find_rightmost_of_pemdas();
+
 
 		tree.parse(tokens);
 

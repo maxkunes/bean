@@ -54,8 +54,45 @@ public:
 
 	void parse(const token_array& tokens)
 	{
+		
 		token_iterator iterator(tokens);
 		iterator.next();
+
+		if (iterator.get_size() >= 2)
+		{
+			if (iterator.first().get_type() == token_type::lparen && iterator.last().get_type() == token_type::rparen)
+			{
+				int parenCount = 0;
+
+				token_iterator paren_iterator(tokens);
+
+				while (paren_iterator.next().is_valid())
+				{
+					auto parenToken = paren_iterator.here();
+
+					if (parenToken.get_type() == token_type::lparen)
+					{
+						parenCount++;
+					}
+					else if (parenToken.get_type() == token_type::rparen)
+					{
+						parenCount--;
+						if (paren_iterator.get_index() != iterator.get_size() - 1 && parenCount == 0)
+						{
+							// We are not at the end of the expression but we have no open parentheses, therefore the start and end parentheses are not linked.
+							break;
+						}
+						else if (parenCount == 0)
+						{
+							// Last element.
+							iterator.pop_front();
+							iterator.pop_end();
+						}
+					}
+				}
+			}
+		}
+		
 
 		auto token_index = iterator.find_rightmost_of_pemdas();
 		auto token = iterator.get_or_invalid(iterator.find_rightmost_of_pemdas());

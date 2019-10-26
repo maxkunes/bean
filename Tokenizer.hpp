@@ -396,11 +396,44 @@ public:
 		return tokens_.size();
 	}
 
-	std::uint32_t find_rightmost_of(const token_type type)
+	std::uint32_t find_rightmost_of(const token_type type, const bool avoidParen = true)
 	{
 		for(int i = get_size() - 1; i >= 0; i--)
 		{
-			if (get_or_invalid(i).get_type() == type)
+			auto tokenType = get_or_invalid(i).get_type();
+
+			if (avoidParen) {
+				if (tokenType == token_type::rparen)
+				{
+					// account for first one
+					int parenCount = 1;
+					
+					for (int j = i - 1; j >= 0; j--)
+					{
+						auto parenToken = get_or_invalid(j);
+						
+						if (get_or_invalid(j).get_type() == token_type::rparen)
+							parenCount++;
+
+						if (get_or_invalid(j).get_type() == token_type::lparen)
+						{
+							parenCount--;
+							if (parenCount == 0) {
+								i = j - 1;
+								goto outParenCheck;
+							}
+						}
+						
+					}
+
+				}
+			}
+			outParenCheck:
+
+			// update token incase paren check change 'i'
+			tokenType = get_or_invalid(i).get_type();
+			
+			if (tokenType == type)
 				return i;
 		}
 		return -1;
@@ -450,6 +483,57 @@ public:
 		}
 
 		return -1;
+	}
+
+	void remove(std::uint32_t index)
+	{
+		if(get_or_invalid(index).is_valid())
+		{
+			tokens_.erase(tokens_.begin() + index);
+			
+			if (token_index_ >= tokens_.size())
+				token_index_--;
+		}
+	}
+
+	bool is_type(std::uint32_t index, token_type type)
+	{
+		const auto foundToken = get_or_invalid(index);
+
+		if (foundToken.is_valid() && foundToken.get_type() == type)
+			return true;
+
+		return false;
+	}
+
+	token* begin()
+	{
+		return tokens_.data();
+	}
+
+	token* end()
+	{
+		return tokens_.data() + (tokens_.size() - 1);
+	}
+
+	token& first()
+	{
+		return *begin();
+	}
+
+	token& last()
+	{
+		return *end();
+	}
+
+	void pop_front()
+	{
+		remove(0);
+	}
+
+	void pop_end()
+	{
+		remove(tokens_.size() - 1);
 	}
 	
 private:
