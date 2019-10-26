@@ -36,7 +36,7 @@ The precedence followed is PEMDAS left to right. Future operator precedence for 
 extern fun print_int(arg : int);
 extern fun print_generic(arg : Any);
 
-// Creates a constant variable called some_val with the type int and the value of 35.
+// Creates a constant variable called some_val with the type int and the value of 860.
 val some_val : int = (4 + 5 * (2 + 3) * 5) * 5 * (4/3);
 
 // Creates a non constant variable called some_var with the implicit type int and value of 35.
