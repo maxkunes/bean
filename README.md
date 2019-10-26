@@ -60,3 +60,8 @@ print_all("h", 3, 1, 1, 0, " world");
 // Prints : h3110 world
 
 ```
+
+## Tests
+
+All relevent tests can be found in the tests.cpp
+I am the using the wonderful [Catch2](https://github.com/catchorg/Catch2) library.
