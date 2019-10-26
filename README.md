@@ -63,5 +63,5 @@ print_all("h", 3, 1, 1, 0, " world");
 
 ## Tests
 
-All relevent tests can be found in the tests.cpp
+All relevent tests can be found in the `tests.cpp` file.
 I am the using the wonderful [Catch2](https://github.com/catchorg/Catch2) library.
