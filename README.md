@@ -2,7 +2,7 @@
 ## What is this written in?
 C++, targeting C++17
 ## Will this ever go anywhere?
-Probably not. Fun project I am working on starting late sumber 2019.
+Probably not. Fun project I am working on starting late summer 2019.
 ## Purpose
 I wanted to write a custom programming language. Not because this is or will be useful as an actual progamming language, but because I wanted to figure out how to make one.
 
