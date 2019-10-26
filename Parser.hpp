@@ -52,54 +52,59 @@ public:
 		std::cout << ")";
 	}
 
+	static double eval_static(const token_array& tokens)
+	{
+		auto tree = token_node();
+		tree.parse(tokens);
+		return tree.eval();
+	}
+
 	void parse(const token_array& tokens)
 	{
-		
+
 		token_iterator iterator(tokens);
 		iterator.next();
 
-		if (iterator.get_size() >= 2)
+		while (iterator.get_size() >= 2 && iterator.first().get_type() == token_type::lparen && iterator.last().get_type() == token_type::rparen)
 		{
-			if (iterator.first().get_type() == token_type::lparen && iterator.last().get_type() == token_type::rparen)
+			int parenCount = 0;
+
+			token_iterator paren_iterator(iterator.get_tokens());
+
+			while (paren_iterator.next().is_valid())
 			{
-				int parenCount = 0;
+				auto parenToken = paren_iterator.here();
 
-				token_iterator paren_iterator(tokens);
-
-				while (paren_iterator.next().is_valid())
+				if (parenToken.get_type() == token_type::lparen)
 				{
-					auto parenToken = paren_iterator.here();
-
-					if (parenToken.get_type() == token_type::lparen)
+					parenCount++;
+				}
+				else if (parenToken.get_type() == token_type::rparen)
+				{
+					parenCount--;
+					if (paren_iterator.get_index() != iterator.get_size() - 1 && parenCount == 0)
 					{
-						parenCount++;
+						// We are not at the end of the expression but we have no open parentheses, therefore the start and end parentheses are not linked.
+						goto escapeParen;
 					}
-					else if (parenToken.get_type() == token_type::rparen)
+					else if (parenCount == 0)
 					{
-						parenCount--;
-						if (paren_iterator.get_index() != iterator.get_size() - 1 && parenCount == 0)
-						{
-							// We are not at the end of the expression but we have no open parentheses, therefore the start and end parentheses are not linked.
-							break;
-						}
-						else if (parenCount == 0)
-						{
-							// Last element.
-							iterator.pop_front();
-							iterator.pop_end();
-						}
+						// Last element.
+						iterator.pop_front();
+						iterator.pop_end();
 					}
 				}
 			}
 		}
-		
+		escapeParen:
+
 
 		auto token_index = iterator.find_rightmost_of_pemdas();
 		auto token = iterator.get_or_invalid(iterator.find_rightmost_of_pemdas());
-		
+
 		if (token.is_valid()) {
 			op = token;
-			
+
 			const token_array lh_tokens = iterator.splice(0, token_index).get_tokens();
 			const token_array rh_tokens = iterator.splice(token_index + 1, iterator.get_size()).get_tokens();
 
@@ -109,11 +114,11 @@ public:
 			lh->parse(lh_tokens);
 			rh->parse(rh_tokens);
 		}
-		else if(iterator.get_size() == 1)
+		else if (iterator.get_size() == 1)
 		{
 			op = iterator.here();
 		}
-			
+
 		return;
 	}
 

@@ -1,18 +1,18 @@
 #include <iostream>
 #include "Parser.hpp"
-#include <algorithm>
+#define CATCH_CONFIG_RUNNER
+#include "catch.hpp"
 
 
 
-int main()
+int main(int argc, char* argv[])
 {
+	int result = Catch::Session().run(argc, argv);
+	
 	auto token_gen = tokenizer();
 
 	try {
 		auto tree = token_node();
-
-
-		
 		//auto tokens = token_gen.tokenize("(4 + 5 * (2 + 3) * 5) * 5 * (4/3)");
 		auto tokens = token_gen.tokenize("(3) + (6)");
 

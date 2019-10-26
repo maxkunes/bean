@@ -52,7 +52,7 @@ enum class token_type
 	tokentype_end
 };
 
-const char* to_string(token_type e)
+inline const char* to_string(token_type e)
 {
 	switch (e)
 	{
@@ -309,11 +309,10 @@ public:
 
 	token_iterator(token_array tokens, std::uint32_t token_index = -1) : tokens_(std::move(tokens)), token_index_(token_index)
 	{
-		for (auto it = tokens_.begin(); it != tokens_.end(); ++it) {
-			if ((*it).get_type() == token_type::space) {
-				tokens_.erase(it--);
-			}
-		}
+		tokens_.erase(std::remove_if(tokens_.begin(), tokens_.end(), [&](token tok)
+		{
+			return tok.get_type() == token_type::space;
+		}), tokens_.end());
 	}
 
 	token& here()
