@@ -6,7 +6,6 @@ Probably not. Fun project I am working on starting late summer 2019.
 ## Purpose
 I wanted to write a custom programming language. Not because this is or will be useful as an actual progamming language, but because I wanted to figure out how to make one.
 
-I want this to be useable, however, meaning speed is an important factor.
 
 ## What language does this parse?
 One that I wanted to make for the fun of making it.  Most likely has no real world usecase.
