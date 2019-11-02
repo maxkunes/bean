@@ -52,6 +52,7 @@ enum class token_type
 	tokentype_end,
 	carrot,
 	pow,
+	var
 };
 
 inline const char* to_string(token_type e)
@@ -79,6 +80,7 @@ inline const char* to_string(token_type e)
 	case token_type::forward_slash: return "forward slash";
 	case token_type::carrot: return "carrot";
 	case token_type::pow: return "pow";
+	case token_type::var: return "var";
 	default: return "unknown";
 	}
 }
@@ -235,6 +237,7 @@ inline tokenizer::tokenizer()
 	tokenDelims_.emplace_back("/", token_type::forward_slash);
 	tokenDelims_.emplace_back("^", token_type::carrot);
 	tokenDelims_.emplace_back("pow", token_type::pow);
+	tokenDelims_.emplace_back("var", token_type::var);
 	tokenDelims_.emplace_back("\n", token_type::newline);
 }
 
@@ -470,6 +473,12 @@ public:
 	{
 		const std::vector<std::vector<token_type>> typeOrder = {
 			{
+				token_type::var
+			},
+			{
+				token_type::equal
+			},
+			{
 				token_type::plus,
 				token_type::minus
 			},
@@ -491,6 +500,15 @@ public:
 				return offset;
 		}
 
+		// If we don't find a operator, just go left to right and return the first symbol.
+		for(int i = 0; i < this->get_size(); i++)
+		{
+			if(get_or_invalid(i).get_type() == token_type::symbol)
+			{
+				return i;
+			}
+		}
+		
 		return -1;
 	}
 

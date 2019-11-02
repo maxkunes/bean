@@ -23,6 +23,8 @@
     <ClCompile Include="tests.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="ast.h" />
+    <ClInclude Include="astobject.h" />
     <ClInclude Include="catch.hpp" />
     <ClInclude Include="Parser.hpp" />
     <ClInclude Include="Tokenizer.hpp" />
