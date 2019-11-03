@@ -38,7 +38,7 @@
     <ClInclude Include="bean_ast.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="bean_ast_object.hpp">
+    <ClInclude Include="bean_object.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

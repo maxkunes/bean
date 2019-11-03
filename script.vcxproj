@@ -24,7 +24,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="bean_ast.hpp" />
-    <ClInclude Include="bean_ast_object.hpp" />
+    <ClInclude Include="bean_object.hpp" />
     <ClInclude Include="catch.hpp" />
     <ClInclude Include="tokenizer.hpp" />
     <ClInclude Include="utils.hpp" />

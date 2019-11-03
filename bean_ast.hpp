@@ -3,7 +3,7 @@
 #include <memory>
 #include <cstdint>
 #include <map>
-#include "bean_ast_object.hpp"
+#include "bean_object.hpp"
 #include "tokenizer.hpp"
 
 
