@@ -258,7 +258,7 @@ inline token_array tokenizer::tokenize(const std::string& raw_input)
 
 			const auto found_token_pos = next_token_pos(line, last_token_end_pos, found_token);
 
-			if (found_token_pos != std::uint32_t(-1))
+			if (found_token_pos != std::size_t(-1))
 			{
 				if (found_token_pos > last_token_end_pos)
 				{
