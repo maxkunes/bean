@@ -23,11 +23,12 @@
     <ClCompile Include="tests.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="ast.h" />
-    <ClInclude Include="astobject.h" />
+    <ClInclude Include="bean_ast.hpp" />
+    <ClInclude Include="bean_ast_object.hpp" />
     <ClInclude Include="catch.hpp" />
-    <ClInclude Include="Parser.hpp" />
-    <ClInclude Include="Tokenizer.hpp" />
+    <ClInclude Include="tokenizer.hpp" />
+    <ClInclude Include="utils.hpp" />
+    <ClInclude Include="bean_vm.hpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
