@@ -1,4 +1,3 @@
-### This branch was the proof on concept for the in development branch. The in development branch does not have the same feature set as the current master branch. The in development branch is the future of this project. Concider this branch stale.
 # A VERY WIP custom scripting language lexer, parser and evaluator.
 ## What is this written in?
 C++, targeting C++17
