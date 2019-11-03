@@ -1,9 +1,9 @@
 #include <iostream>
-#include "Parser.hpp"
+#include "bean_ast.hpp"
 #define CATCH_CONFIG_RUNNER
+#define CATCH_CONFIG_ENABLE_BENCHMARKING
 #include "catch.hpp"
-
-
+#include "bean_vm.hpp"
 
 int main(int argc, char* argv[])
 {
@@ -11,28 +11,21 @@ int main(int argc, char* argv[])
 	
 	auto token_gen = tokenizer();
 
+	
 	try {
-		auto tree = token_node();
-		//auto tokens = token_gen.tokenize("(4 + 5 * (2 + 3) * 5) * 5 * (4/3)");
-		auto tokens = token_gen.tokenize("(3) + (6)");
-
+		auto vm = bean_vm();
+		auto& state = vm.get_state();
 		
-		auto iter = token_iterator(tokens);
+		vm.eval("var x = (6.5 + 8.5 * 4 / 2 ^ 2)");
+		vm.eval("var y = x + 5.55");
+		vm.eval("print(y + 5.55 + x)");
 
-		auto rightmost = iter.find_rightmost_of_pemdas();
-
-
-		tree.parse(tokens);
-
-		std::cout << tree.eval() << std::endl;
-		
-		tree.print();
+		std::cout << vm.get_state().variables.size() << std::endl;
 	}
-	catch(const std::exception& e)
+	catch (const std::exception& e)
 	{
 		std::cout << "Exception occured while parsing script." << std::endl;
 		std::cout << e.what() << std::endl;
 	}
-		
-	return 1;
 }
+

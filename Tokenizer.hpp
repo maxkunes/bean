@@ -52,6 +52,7 @@ enum class token_type
 	tokentype_end,
 	carrot,
 	pow,
+	var
 };
 
 inline const char* to_string(token_type e)
@@ -79,6 +80,7 @@ inline const char* to_string(token_type e)
 	case token_type::forward_slash: return "forward slash";
 	case token_type::carrot: return "carrot";
 	case token_type::pow: return "pow";
+	case token_type::var: return "var";
 	default: return "unknown";
 	}
 }
@@ -97,7 +99,7 @@ public:
 
 	[[nodiscard]] const std::string& get_delim() const { return delim_; }
 
-	std::size_t match(const std::string_view& view)
+	std::size_t match(const std::string_view& view) const
 	{
 		if (view.length() < delim_.length())
 			return 0;
@@ -197,52 +199,63 @@ private:
 using token_array = std::vector<token>;
 using tokendelim_array = std::vector<token_delim>;
 
+const static tokendelim_array tokenDelims_ = {
+		{" ", token_type::space},
+		{"(", token_type::lparen},
+		{")", token_type::rparen},
+		{"{", token_type::lbrace},
+		{"}", token_type::rbrace},
+		{"[", token_type::lbracket},
+		{"]", token_type::rbracket},
+		{":", token_type::colon},
+		{";", token_type::semicolon},
+		{"=", token_type::equal},
+		{"*", token_type::asterisk},
+		{"\r", token_type::carriagereturn},
+		{"+", token_type::plus},
+		{"-", token_type::minus},
+		{"/", token_type::forward_slash},
+		{"^", token_type::carrot},
+		{"pow", token_type::pow},
+		{"var", token_type::var},
+		{"\n", token_type::newline},
+
+};
+
 class tokenizer
 {
 public:
-
-	tokenizer();
-
-	token_array tokenize(const std::string& raw_input);
-
-	token_array tokenize(std::ifstream& file);
-	
+	static token_array tokenize(const std::string& raw_input);
+	static token_array tokenize(std::ifstream& file);
 private:
+	static std::size_t next_token_pos(const std::string& original, const std::size_t offset, token& parsed, std::int32_t lineNumber)
+	{
+		const auto input = original.substr(offset);
 
-	std::size_t next_token_pos(const std::string& original, const std::size_t offset, token& parsed);
-	tokendelim_array tokenDelims_;
-	std::uint32_t line_;
+		for (std::uint32_t i = 0; i < input.length(); i++)
+		{
+			const std::string_view view(input.c_str() + i, input.length() - i);
+
+			for (const auto& token_delim : tokenDelims_)
+			{
+				const auto match_length = token_delim.match(view);
+				if (match_length > 0)
+				{
+					parsed = token(i + offset, lineNumber, token_delim.get_type(), token_delim.get_delim());
+					return i + offset;
+				}
+			}
+		}
+
+		return -1;
+	}
 };
-
-inline tokenizer::tokenizer()
-{
-	line_ = 1;
-	
-	tokenDelims_.emplace_back(" ", token_type::space);
-	tokenDelims_.emplace_back("(", token_type::lparen);
-	tokenDelims_.emplace_back(")", token_type::rparen);
-	tokenDelims_.emplace_back("{", token_type::lbrace);
-	tokenDelims_.emplace_back("}", token_type::rbrace);
-	tokenDelims_.emplace_back("[", token_type::lbracket);
-	tokenDelims_.emplace_back("]", token_type::rbracket);
-	tokenDelims_.emplace_back(":", token_type::colon);
-	tokenDelims_.emplace_back(";", token_type::semicolon);
-	tokenDelims_.emplace_back("=", token_type::equal);
-	tokenDelims_.emplace_back("*", token_type::asterisk);
-	tokenDelims_.emplace_back("\r", token_type::carriagereturn);
-	tokenDelims_.emplace_back("+", token_type::plus);
-	tokenDelims_.emplace_back("-", token_type::minus);
-	tokenDelims_.emplace_back("/", token_type::forward_slash);
-	tokenDelims_.emplace_back("^", token_type::carrot);
-	tokenDelims_.emplace_back("pow", token_type::pow);
-	tokenDelims_.emplace_back("\n", token_type::newline);
-}
-
 
 inline token_array tokenizer::tokenize(const std::string& raw_input)
 {
 	token_array output;
-
+	std::int32_t lineNumber = 1;
+	
 	auto lines = split_string(raw_input, "\n");
 
 	for (auto& line : lines) {
@@ -253,14 +266,14 @@ inline token_array tokenizer::tokenize(const std::string& raw_input)
 		{
 			token found_token;
 
-			const auto found_token_pos = next_token_pos(line, last_token_end_pos, found_token);
+			const auto found_token_pos = next_token_pos(line, last_token_end_pos, found_token, lineNumber);
 
-			if (found_token_pos != std::uint32_t(-1))
+			if (found_token_pos != std::size_t(-1))
 			{
 				if (found_token_pos > last_token_end_pos)
 				{
 					// symbol lives between tokens
-					output.emplace_back(last_token_end_pos, line_, token_type::symbol, line.substr(last_token_end_pos, found_token_pos + found_token.length() - last_token_end_pos - 1));
+					output.emplace_back(last_token_end_pos, lineNumber, token_type::symbol, line.substr(last_token_end_pos, found_token_pos + found_token.length() - last_token_end_pos - 1));
 				}
 
 				output.emplace_back(found_token);
@@ -270,12 +283,12 @@ inline token_array tokenizer::tokenize(const std::string& raw_input)
 			else
 			{
 				// No end token exist. Symbol is the last bit of the line.
-				output.emplace_back(last_token_end_pos, line_, token_type::symbol, line.substr(last_token_end_pos, line.size() - last_token_end_pos));
+				output.emplace_back(last_token_end_pos, lineNumber, token_type::symbol, line.substr(last_token_end_pos, line.size() - last_token_end_pos));
 				i += line.size() - last_token_end_pos;
 			}
 		}
 
-		line_++;
+		lineNumber++;
 	}
 		
 	return output;
@@ -287,27 +300,6 @@ inline token_array tokenizer::tokenize(std::ifstream& file)
 		std::istreambuf_iterator<char>()));
 }
 
-inline std::size_t tokenizer::next_token_pos(const std::string& original, const std::size_t offset, token& parsed)
-{
-	const auto input = original.substr(offset);
-	
-	for (std::uint32_t i = 0; i < input.length(); i++)
-	{
-		const std::string_view view(input.c_str() + i, input.length() - i);
-
-		for (auto& token_delim : tokenDelims_)
-		{
-			const auto match_length = token_delim.match(view);
-			if (match_length > 0)
-			{
-				parsed = token(i + offset, line_, token_delim.get_type(), token_delim.get_delim());
-				return i + offset;
-			}
-		}
-	}
-
-	return -1;
-}
 
 class token_iterator
 {
@@ -470,6 +462,12 @@ public:
 	{
 		const std::vector<std::vector<token_type>> typeOrder = {
 			{
+				token_type::var
+			},
+			{
+				token_type::equal
+			},
+			{
 				token_type::plus,
 				token_type::minus
 			},
@@ -491,6 +489,15 @@ public:
 				return offset;
 		}
 
+		// If we don't find a operator, just go left to right and return the first symbol.
+		for(int i = 0; i < this->get_size(); i++)
+		{
+			if(get_or_invalid(i).get_type() == token_type::symbol)
+			{
+				return i;
+			}
+		}
+		
 		return -1;
 	}
 
