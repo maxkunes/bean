@@ -128,12 +128,24 @@ TEST_CASE("VM")
 
 	SECTION("Variables")
 	{
-		auto [state, result] = eval_simple_all("var x = (1 + 2)");
+		{
+			auto [state, result] = eval_simple_all("var x = (1 + 2)");
+			REQUIRE(state.variables.size() == 1);
+			REQUIRE(state.variables.count("x") == 1);
+			REQUIRE(state.variables["x"]->as_int() == 3);
+		}
 
-		REQUIRE(state.variables.size() == 1);
-		REQUIRE(state.variables.count("x") == 1);
-		REQUIRE(state.variables["x"]->as_int() == 3);
-		
+		{
+			auto [state, result] = eval_simple_all("var x = (1 + 2); var y = x + 1;");
+			
+			REQUIRE(state.variables.size() == 2);
+			
+			REQUIRE(state.variables.count("x") == 1);
+			REQUIRE(state.variables["x"]->as_int() == 3);
+
+			REQUIRE(state.variables.count("y") == 1);
+			REQUIRE(state.variables["y"]->as_int() == 4);
+		}
 	}
 	
 }
