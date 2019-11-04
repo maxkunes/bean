@@ -16,6 +16,15 @@ int main(int argc, char* argv[])
 		auto vm = bean_vm();
 		auto& state = vm.get_state();
 		
+		bean_function print_bind = [&](bean_objects params) -> bean_objects {
+			for (auto& param : params) {
+				std::cout << param->to_string() << std::endl;
+			}
+			return bean_objects();
+		};
+
+		state.functions["print"] = print_bind;
+
 		vm.eval("var x = (6.5 + 8.5 * 4 / 2 ^ 2)");
 		vm.eval("var y = x + 5.55");
 		vm.eval("print(y + 5.55 + x)");

@@ -1,7 +1,8 @@
 #pragma once
 #include <iostream>
 #include <memory>
-
+#include <string>
+#include <functional>
 // double, integer
 
 enum class BeanObjectType
@@ -24,6 +25,10 @@ class bean_object
 public:
 	bean_object() : type_(BeanObjectType::INVALID) {}
 	bean_object(const BeanObjectType type) : type_(type) {}
+
+	virtual std::string to_string() {
+		return "to_string not implmented for object type!";
+	}
 
 	virtual std::shared_ptr<bean_object> lh_plus(const std::shared_ptr<bean_object>& rh)
 	{
@@ -105,6 +110,11 @@ public:
 		object_ = &value_;
 	}
 
+	virtual std::string to_string() override 
+	{
+		return value_->to_string();
+	}
+
 	virtual void set(const std::shared_ptr<bean_object>& value)
 	{
 		value_ = value;
@@ -144,6 +154,11 @@ public:
 		object_ = &value_;
 	}
 
+	virtual std::string to_string() override
+	{
+		return std::to_string(value_);
+	}
+
 	virtual std::shared_ptr<bean_object> lh_pow(const std::shared_ptr<bean_object>& rh) override;
 	
 	virtual std::shared_ptr<bean_object> lh_multiply(const std::shared_ptr<bean_object>& rh) override;
@@ -165,6 +180,11 @@ public:
 	{
 		value_ = value;
 		object_ = &value_;
+	}
+
+	virtual std::string to_string() override
+	{
+		return std::to_string(value_);
 	}
 
 	virtual std::shared_ptr<bean_object> lh_pow(const std::shared_ptr<bean_object>& rh) override

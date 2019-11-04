@@ -148,4 +148,44 @@ TEST_CASE("VM")
 		}
 	}
 	
+	SECTION("Binding Functions") {
+
+		{
+			int value = 0;
+
+			bean_function inc_value = [&](bean_objects params) -> bean_objects {
+				value++;
+				return bean_objects();
+			};
+
+			auto vm = bean_vm();
+			auto& state = vm.get_state();
+			state.functions["inc_value"] = inc_value;
+
+			auto res = vm.eval_result("inc_value()");
+
+			REQUIRE(value == 1);
+
+		}
+	}
+
+	{
+
+		bean_function get_pi = [&](bean_objects params) -> bean_objects {
+			bean_objects returnValues;
+			returnValues.push_back(std::make_shared<bean_object_double>(3.14159265));
+			return returnValues;
+		};
+
+		auto vm = bean_vm();
+		auto& state = vm.get_state();
+		state.functions["pi"] = get_pi;
+
+		vm.eval_result("var x = pi()");
+
+		REQUIRE(state.variables.count("x") == 1);
+		REQUIRE(are_same(state.variables["x"]->as_double(), 3.14159265));
+
+	}
+
 }

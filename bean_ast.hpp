@@ -53,6 +53,10 @@ public:
 	static std::shared_ptr<ast> parse(const token_array& tokens, bean_state& state);
 };
 
+using bean_objects = std::vector<std::shared_ptr<bean_object>>;
+using bean_function = std::function<bean_objects(bean_objects&)>;
+
+
 class bean_state
 {
 public:
@@ -62,6 +66,7 @@ public:
 	}
 	
 	std::map<std::string, std::shared_ptr<bean_object>> variables;
+	std::map<std::string, bean_function> functions;
 };
 
 class ast
@@ -247,16 +252,20 @@ public:
 	{
 		const auto functionName = left_->get_value().get_text();
 
-		if(functionName == "print")
-		{
-			std::cout << right_->eval(state)->as<double>() << std::endl;
+		if (state.functions.count(functionName) == 0) {
+			throw std::exception("Function to call does not exist!");
 		}
-		else
-		{
-			throw std::exception("Function not defined!");
-		}
+		bean_objects params;
 
-		return std::make_shared<bean_object>(BeanObjectType::None);
+		if(right_)
+			params.push_back(right_->eval(state));
+		
+		auto function_return = state.functions[functionName](params);
+
+		if (function_return.size() == 0)
+			function_return.push_back(std::make_shared<bean_object>(BeanObjectType::INVALID));
+
+		return function_return[0];
 	}
 };
 
@@ -368,7 +377,7 @@ inline std::shared_ptr<ast> ast_builder::parse(const token_array& tokens, bean_s
 		case token_type::symbol:
 		{
 
-			if(token.get_text() == "print")
+			if(state.functions.count(token.get_text()) > 0)
 			{
 				// print function
 				resulting_node = std::make_shared<ast_function_call>();
@@ -377,7 +386,9 @@ inline std::shared_ptr<ast> ast_builder::parse(const token_array& tokens, bean_s
 				const auto function_args = iterator.splice(token_index + 1, iterator.get_size()).get_tokens();
 				
 				resulting_node->set_left(parse(function_name, state));
-				resulting_node->set_right(parse(function_args, state));
+
+				if(function_args.size() > 2)
+					resulting_node->set_right(parse(function_args, state));
 			}
 				
 		}
