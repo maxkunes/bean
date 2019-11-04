@@ -153,14 +153,14 @@ TEST_CASE("VM")
 		{
 			int value = 0;
 
-			bean_function inc_value = [&](bean_objects params) -> bean_objects {
+			bean_function_decl inc_value_cpp = [&](bean_objects& params) -> bean_objects {
 				value++;
 				return bean_objects();
 			};
 
 			auto vm = bean_vm();
 			auto& state = vm.get_state();
-			state.functions["inc_value"] = inc_value;
+			state.functions.emplace_back(std::make_shared<bean_function>(inc_value_cpp, "inc_value"));
 
 			auto res = vm.eval_result("inc_value()");
 
@@ -171,7 +171,7 @@ TEST_CASE("VM")
 
 	{
 
-		bean_function get_pi = [&](bean_objects params) -> bean_objects {
+		bean_function_decl get_pi_cpp = [&](bean_objects& params) -> bean_objects {
 			bean_objects returnValues;
 			returnValues.push_back(std::make_shared<bean_object_double>(3.14159265));
 			return returnValues;
@@ -179,7 +179,7 @@ TEST_CASE("VM")
 
 		auto vm = bean_vm();
 		auto& state = vm.get_state();
-		state.functions["pi"] = get_pi;
+		state.functions.emplace_back(std::make_shared<bean_function>(get_pi_cpp, "pi"));
 
 		vm.eval_result("var x = pi()");
 

@@ -5,25 +5,27 @@
 #include "catch.hpp"
 #include "bean_vm.hpp"
 
+
+
 int main(int argc, char* argv[])
 {
 	int result = Catch::Session().run(argc, argv);
 	
 	auto token_gen = tokenizer();
-
 	
 	try {
 		auto vm = bean_vm();
 		auto& state = vm.get_state();
-		
-		bean_function print_bind = [&](bean_objects params) -> bean_objects {
+
+
+		bean_function_decl print_cpp =  [&](bean_objects& params) -> bean_objects {
 			for (auto& param : params) {
 				std::cout << param->to_string() << std::endl;
 			}
 			return bean_objects();
 		};
-
-		state.functions["print"] = print_bind;
+		
+		state.functions.emplace_back(std::make_shared<bean_function>(print_cpp, "print"));
 
 		vm.eval("var x = (6.5 + 8.5 * 4 / 2 ^ 2)");
 		vm.eval("var y = x + 5.55");

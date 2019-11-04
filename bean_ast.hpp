@@ -54,7 +54,32 @@ public:
 };
 
 using bean_objects = std::vector<std::shared_ptr<bean_object>>;
-using bean_function = std::function<bean_objects(bean_objects&)>;
+using bean_function_decl = std::function<bean_objects(bean_objects&)>;
+
+
+class bean_function
+{
+public:
+	explicit bean_function(bean_function_decl& fun, const std::string name)
+	{
+		fun_ = std::move(fun);
+		name_ = std::move(name);
+	}
+
+	bean_objects operator()(bean_objects& params) const
+	{
+		return fun_(params);
+	}
+
+	std::string get_name() const
+	{
+		return name_;
+	}
+	
+private:
+	bean_function_decl fun_;
+	std::string name_;
+};
 
 
 class bean_state
@@ -64,9 +89,20 @@ public:
 	{
 		variables.clear();
 	}
+
+	std::shared_ptr<bean_function> get_function(const std::string& name)
+	{
+		for(auto& fun : functions)
+		{
+			if (fun->get_name() == name)
+				return fun;
+		}
+
+		return std::shared_ptr<bean_function>();
+	}
 	
 	std::map<std::string, std::shared_ptr<bean_object>> variables;
-	std::map<std::string, bean_function> functions;
+	std::vector<std::shared_ptr<bean_function>> functions;
 };
 
 class ast
@@ -244,23 +280,24 @@ public:
 	}
 };
 
-
 class ast_function_call final : public ast
 {
 public:
 	virtual std::shared_ptr<bean_object> eval(bean_state& state) override
 	{
 		const auto functionName = left_->get_value().get_text();
-
-		if (state.functions.count(functionName) == 0) {
+		const auto targetFunction = state.get_function(functionName);
+		
+		if (!targetFunction) {
 			throw std::exception("Function to call does not exist!");
 		}
 		bean_objects params;
-
-		if(right_)
-			params.push_back(right_->eval(state));
 		
-		auto function_return = state.functions[functionName](params);
+		if (right_) {
+			params.push_back(right_->eval(state));
+		}
+
+		auto function_return = targetFunction->operator()(params);
 
 		if (function_return.size() == 0)
 			function_return.push_back(std::make_shared<bean_object>(BeanObjectType::INVALID));
@@ -377,7 +414,7 @@ inline std::shared_ptr<ast> ast_builder::parse(const token_array& tokens, bean_s
 		case token_type::symbol:
 		{
 
-			if(state.functions.count(token.get_text()) > 0)
+			if(state.get_function(token.get_text()))
 			{
 				// print function
 				resulting_node = std::make_shared<ast_function_call>();
