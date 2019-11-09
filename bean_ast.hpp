@@ -60,10 +60,11 @@ using bean_function_decl = std::function<bean_objects(bean_objects&)>;
 class bean_function
 {
 public:
-	explicit bean_function(bean_function_decl& fun, const std::string name)
+	explicit bean_function(bean_function_decl& fun, const std::string name, std::initializer_list<bean_object_type_descriptor> parameter_types)
 	{
 		fun_ = std::move(fun);
-		name_ = std::move(name);
+		name_ = name;
+		parameter_types_ = parameter_types;
 	}
 
 	bean_objects operator()(bean_objects& params) const
@@ -71,7 +72,7 @@ public:
 		return fun_(params);
 	}
 
-	std::string get_name() const
+	[[nodiscard]] std::string get_name() const
 	{
 		return name_;
 	}
@@ -79,6 +80,7 @@ public:
 private:
 	bean_function_decl fun_;
 	std::string name_;
+	std::vector<bean_object_type_descriptor> parameter_types_;
 };
 
 
@@ -294,7 +296,7 @@ public:
 		bean_objects params;
 		
 		if (right_) {
-			params.push_back(right_->eval(state));
+ 			params.push_back(right_->eval(state));
 		}
 
 		auto function_return = targetFunction->operator()(params);

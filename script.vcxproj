@@ -26,6 +26,7 @@
     <ClInclude Include="bean_ast.hpp" />
     <ClInclude Include="bean_object.hpp" />
     <ClInclude Include="catch.hpp" />
+    <ClInclude Include="fnv1a.hpp" />
     <ClInclude Include="tokenizer.hpp" />
     <ClInclude Include="utils.hpp" />
     <ClInclude Include="bean_vm.hpp" />
