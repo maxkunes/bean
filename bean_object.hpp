@@ -21,16 +21,42 @@ inline bool BeanObjectTypeIsPrimitive(const BeanObjectType type)
 	return type != BeanObjectType::INVALID && type != BeanObjectType::CUSTOM && type != BeanObjectType::REFERENCE;
 }
 
+
+/*
+ Overly simple type descriptor class.
+
+class bean_object_type_descriptor
+{
+public:
+	bean_object_type_descriptor(const std::string type_name)
+	{
+		type_name_ = type_name;
+		type_name_hash_ = hash_32_fnv1a_const(type_name.c_str());
+		valid_ = true;
+	}
+
+	bean_object_type_descriptor() : type_name_hash_(-1), valid_(false)
+	{
+
+	}
+private:
+	std::string type_name_;
+	std::uint32_t type_name_hash_;
+	bool valid_;
+};
+*/
+
 class bean_object
 {
 public:
 	bean_object() : type_(BeanObjectType::INVALID) {}
 	bean_object(const BeanObjectType type) : type_(type) {}
 
-	virtual bean_object_type_descriptor get_type_descriptor()
+	/*virtual bean_object_type_descriptor get_type_descriptor()
 	{
 		
 	}
+	*/
 	
 	virtual std::string to_string() {
 		return "to_string not implmented for object type!";
@@ -107,29 +133,6 @@ protected:
 	void* object_;
 };
 
-/*
- Overly simple type descriptor class.
- */
-class bean_object_type_descriptor
-{
-public:
-	bean_object_type_descriptor(const std::string type_name)
-	{
-		type_name_ = type_name;
-		type_name_hash_ = hash_32_fnv1a_const(type_name.c_str());
-		valid_ = true;
-	}
-
-	bean_object_type_descriptor() : type_name_hash_(-1), valid_(false)
-	{
-		
-	}
-private:
-	std::string type_name_;
-	std::uint32_t type_name_hash_;
-	bool valid_;
-};
-
 class bean_object_none : public bean_object
 {
 public:
@@ -137,10 +140,12 @@ public:
 	{
 	}
 
+	/*
 	virtual bean_object_type_descriptor get_type_descriptor() override
 	{
 		return bean_object_type_descriptor("None");
 	}
+	*/
 };
 
 class bean_object_reference : public bean_object
@@ -152,10 +157,12 @@ public:
 		object_ = &value_;
 	}
 
+	/*
 	virtual bean_object_type_descriptor get_type_descriptor() override
 	{
 		return bean_object_type_descriptor("Reference");
 	}
+	*/
 
 	virtual std::string to_string() override 
 	{
@@ -201,11 +208,12 @@ public:
 		object_ = &value_;
 	}
 
+	/*
 	virtual bean_object_type_descriptor get_type_descriptor() override
 	{
 		return bean_object_type_descriptor("Integer");
 	}
-
+	*/
 	virtual std::string to_string() override
 	{
 		return std::to_string(value_);
@@ -233,12 +241,12 @@ public:
 		value_ = value;
 		object_ = &value_;
 	}
-
+	/*
 	virtual bean_object_type_descriptor get_type_descriptor() override
 	{
 		return bean_object_type_descriptor("Double");
 	}
-	
+	*/
 	virtual std::string to_string() override
 	{
 		return std::to_string(value_);

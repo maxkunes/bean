@@ -9,7 +9,7 @@
 
 int main(int argc, char* argv[])
 {
-	//int result = Catch::Session().run(argc, argv);
+	int result = Catch::Session().run(argc, argv);
 	
 	auto token_gen = tokenizer();
 	
@@ -17,19 +17,10 @@ int main(int argc, char* argv[])
 		auto vm = bean_vm();
 		auto& state = vm.get_state();
 
+		vm.eval("fun get_pi { 3.141592 }");
 
-		bean_function_decl print_cpp =  [&](bean_objects& params) -> bean_objects {
-			for (auto& param : params) {
-				std::cout << param->to_string() << std::endl;
-			}
-			return bean_objects();
-		};
-		
-		state.functions.emplace_back(std::make_shared<bean_function>(print_cpp, "print", { bean_object_none().get_type_descriptor() }));
+		std::cout << vm.eval_result("get_pi()")->as_double() << std::endl;
 
-		vm.eval("var x = (6.5 + 8.5 * 4 / 2 ^ 2)"); // 15
-		vm.eval("var y = x + 5.55"); // 20.55
-		vm.eval("print(y + 5.55 + x)");
 
 		std::cout << vm.get_state().variables.size() << std::endl;
 	}

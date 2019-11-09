@@ -147,7 +147,25 @@ TEST_CASE("VM")
 			REQUIRE(state.variables["y"]->as_int() == 4);
 		}
 	}
-	
+
+	SECTION("Defining Functions") {
+
+		auto vm = bean_vm();
+		auto& state = vm.get_state();
+		
+		SECTION("Short Hand") {
+			vm.eval("fun get_pi { 3.14159265 }");
+			REQUIRE(are_same(vm.eval_result("get_pi()")->as_double(), 3.14159265));
+
+			vm.eval("fun get_one { 1 }");
+			REQUIRE(vm.eval_result("get_one()")->as_int() == 1);
+
+			vm.eval("var x = get_one()");
+			REQUIRE(state.variables["x"]->as_int() == 1);
+		}
+	}
+
+	/*
 	SECTION("Binding Functions") {
 
 		{
@@ -187,5 +205,5 @@ TEST_CASE("VM")
 		REQUIRE(are_same(state.variables["x"]->as_double(), 3.14159265));
 
 	}
-
+	*/
 }

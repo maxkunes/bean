@@ -60,11 +60,11 @@ using bean_function_decl = std::function<bean_objects(bean_objects&)>;
 class bean_function
 {
 public:
-	explicit bean_function(bean_function_decl& fun, const std::string name, std::initializer_list<bean_object_type_descriptor> parameter_types)
+	explicit bean_function(bean_function_decl& fun, const std::string name)
 	{
 		fun_ = std::move(fun);
 		name_ = name;
-		parameter_types_ = parameter_types;
+		//parameter_types_ = parameter_types;
 	}
 
 	bean_objects operator()(bean_objects& params) const
@@ -80,7 +80,7 @@ public:
 private:
 	bean_function_decl fun_;
 	std::string name_;
-	std::vector<bean_object_type_descriptor> parameter_types_;
+	//std::vector<bean_object_type_descriptor> parameter_types_;
 };
 
 
@@ -92,19 +92,20 @@ public:
 		variables.clear();
 	}
 
-	std::shared_ptr<bean_function> get_function(const std::string& name)
+	std::shared_ptr<ast> get_function(const std::string& name)
 	{
 		for(auto& fun : functions)
 		{
-			if (fun->get_name() == name)
-				return fun;
+			if (fun.first == name)
+				return fun.second;
 		}
 
-		return std::shared_ptr<bean_function>();
+		return nullptr;
 	}
 	
 	std::map<std::string, std::shared_ptr<bean_object>> variables;
-	std::vector<std::shared_ptr<bean_function>> functions;
+	std::map<std::string, std::shared_ptr<ast>> functions;
+	//std::vector<std::shared_ptr<bean_function>> functions;
 };
 
 class ast
@@ -282,11 +283,35 @@ public:
 	}
 };
 
+class ast_function final : public ast {
+public:
+	virtual std::shared_ptr<bean_object> eval(bean_state& state) override
+	{
+		auto function_name = left_->get_value().get_text();
+
+		state.functions[function_name] = right_;
+
+		return std::make_shared<bean_object>(BeanObjectType::None);
+	}
+};
+
+class ast_function_script_call final : public ast {
+public:
+	virtual std::shared_ptr<bean_object> eval(bean_state& state) override
+	{
+		const auto function_name = left_->get_value().get_text();
+		const auto target_function = state.get_function(function_name);
+
+		return target_function->eval(state);
+	}
+};
+
 class ast_function_call final : public ast
 {
 public:
 	virtual std::shared_ptr<bean_object> eval(bean_state& state) override
 	{
+		/*
 		const auto functionName = left_->get_value().get_text();
 		const auto targetFunction = state.get_function(functionName);
 		
@@ -305,6 +330,8 @@ public:
 			function_return.push_back(std::make_shared<bean_object>(BeanObjectType::INVALID));
 
 		return function_return[0];
+		*/
+		return std::make_shared<bean_object>(BeanObjectType::None);
 	}
 };
 
@@ -318,7 +345,7 @@ inline std::shared_ptr<ast> ast_builder::parse(const token_array& tokens, bean_s
 	const auto token_index = iterator.find_rightmost_of_pemdas();
 	const auto token = iterator.get_or_invalid(iterator.find_rightmost_of_pemdas());
 
-	if(token_index != std::uint32_t(-1))
+	if(token_index != invalid_token_index)
 	{
 		iterator.jump_to(token_index);
 	}
@@ -419,7 +446,7 @@ inline std::shared_ptr<ast> ast_builder::parse(const token_array& tokens, bean_s
 			if(state.get_function(token.get_text()))
 			{
 				// print function
-				resulting_node = std::make_shared<ast_function_call>();
+				resulting_node = std::make_shared<ast_function_script_call>();
 
 				const auto function_name = iterator.splice(token_index + 0, token_index + 1).get_tokens();
 				const auto function_args = iterator.splice(token_index + 1, iterator.get_size()).get_tokens();
@@ -428,6 +455,29 @@ inline std::shared_ptr<ast> ast_builder::parse(const token_array& tokens, bean_s
 
 				if(function_args.size() > 2)
 					resulting_node->set_right(parse(function_args, state));
+			}
+			else if(token.get_text() == "fun") {
+				// function creation
+				/*
+				
+				fun some_func {
+					return some_thing
+				}
+
+				*/
+
+				const auto function_name = iterator.splice(token_index + 1, token_index + 2).get_tokens();
+				
+				iterator.jump_to(token_index + 1);
+
+				const auto function_end = iterator.find_last_pos_of_open_close(token_type::lbrace, token_type::rbrace);
+
+				const auto function_body = iterator.splice(token_index + 3, function_end).get_tokens();
+
+				resulting_node = std::make_shared<ast_function>();
+				resulting_node->set_left(parse(function_name, state));
+				resulting_node->set_right(parse(function_body, state));
+
 			}
 				
 		}

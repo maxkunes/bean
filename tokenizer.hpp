@@ -9,6 +9,7 @@
 #include <fstream>
 #include <streambuf>
 
+constexpr std::uint32_t invalid_token_index = -1;
 
 inline std::vector<std::string> split_string(const std::string& str,
 	const std::string& delimiter)
@@ -121,7 +122,7 @@ public:
 
 	}
 
-	token(): pos_(-1), line_(-1), type_(token_type::invalid), text_(""), valid_(false)
+	token(): pos_(invalid_token_index), line_(-1), type_(token_type::invalid), text_(""), valid_(false)
 	{
 		
 	}
@@ -247,7 +248,7 @@ private:
 			}
 		}
 
-		return -1;
+		return invalid_token_index;
 	}
 };
 
@@ -268,7 +269,7 @@ inline token_array tokenizer::tokenize(const std::string& raw_input)
 
 			const auto found_token_pos = next_token_pos(line, last_token_end_pos, found_token, lineNumber);
 
-			if (found_token_pos != std::size_t(-1))
+			if (found_token_pos != invalid_token_index)
 			{
 				if (found_token_pos > last_token_end_pos)
 				{
@@ -305,7 +306,7 @@ class token_iterator
 {
 public:
 
-	token_iterator(token_array tokens, std::uint32_t token_index = -1) : tokens_(std::move(tokens)), token_index_(token_index)
+	token_iterator(token_array tokens, std::uint32_t token_index = invalid_token_index) : tokens_(std::move(tokens)), token_index_(token_index)
 	{
 		tokens_.erase(std::remove_if(tokens_.begin(), tokens_.end(), [&](token tok)
 		{
@@ -383,6 +384,31 @@ public:
 		return token_iterator(token_array(tokens_.begin() + start, tokens_.begin() + end));
 	}
 
+	std::uint32_t find_last_pos_of_open_close(const token_type open, const token_type close) {
+
+		std::uint32_t stack = 0;
+
+		std::uint32_t o_pos = get_index();
+
+		while (next().is_valid())
+		{
+			if (here().get_type() == open)
+				stack++;
+			if (here().get_type() == close) {
+				stack--;
+				if (stack == 0) {
+					std::uint32_t found_pos = get_index();
+					jump_to(o_pos);
+					return found_pos;
+				}
+			}
+		}
+
+		jump_to(o_pos);
+
+		return invalid_token_index;
+	}
+
 	token_array get_tokens() const
 	{
 		return tokens_;
@@ -433,20 +459,20 @@ public:
 			if (tokenType == type)
 				return i;
 		}
-		return -1;
+		return invalid_token_index;
 	}
 
 	std::uint32_t find_rightmost_of(const std::vector<token_type> types)
 	{
-		std::uint32_t maxOffset = -1;
+		std::uint32_t maxOffset = invalid_token_index;
 		
 		for (auto type : types)
 		{
 			const auto off = find_rightmost_of(type);
 
-			if(off != std::uint32_t(-1))
+			if(off != invalid_token_index)
 			{
-				if (maxOffset == std::uint32_t(-1))
+				if (maxOffset == invalid_token_index)
 				{
 					maxOffset = off;
 				}
@@ -485,7 +511,7 @@ public:
 		{
 			const auto offset = find_rightmost_of(i);
 
-			if (offset != std::uint32_t(-1))
+			if (offset != invalid_token_index)
 				return offset;
 		}
 
@@ -498,7 +524,7 @@ public:
 			}
 		}
 		
-		return -1;
+		return invalid_token_index;
 	}
 
 	void remove(std::uint32_t index)
