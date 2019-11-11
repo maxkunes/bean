@@ -34,6 +34,23 @@ fun evaluate_complex_expression {
 return evaluate_complex_expression();
 ```
 
+## How to use Bean
+
+```
+#include <bean_vm.hpp>
+
+...
+
+try {
+	auto vm = bean_vm();
+    std::cout << vm.eval_result("var x = (1 + 2);")->as_integer() << std::endl;
+}
+catch (const std::exception& e)
+{
+		std::cout << "Exception occured while parsing or evaluating script." << std::endl;
+		std::cout << e.what() << std::endl;
+}
+```
 
 ## Syntax
 ```
