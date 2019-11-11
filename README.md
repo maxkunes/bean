@@ -12,12 +12,14 @@ One that I wanted to make for the fun of making it.  Most likely has no real wor
 ### What is the langauge like?
 It borrows alot of the its syntax from the great language that is Kotlin. Kotlin is a fantastic language to write in and it just makes sense. 
 ## Goals
-1. Evaluate simple code like variable definitions and mathmatical operations on variables.
-2. Evaluate functional code. Creating and calling functions, lamdas, etc.
-3. Evaluate external functional code. Interfacing with the parent C++ application through vm function calls. 
-4. Custom types like classes and structures.
-5. Will have to figure that out if we every get here.
-6. Integrate with LLVM or transcode to C++. JIT compilation would be nice.
+- [x] Evaluate simple code like variable definitions and mathmatical operations on variables.
+- [x] Evaluate functional code. Creating and calling functions.
+- [x] Evaluate external functional code. Interfacing with the parent C++ application through vm function calls. \* 
+- [ ] Custom types like classes and structures.
+- [ ] Will have to figure that out if we every get here.
+- [ ] Integrate with LLVM or transcode to C++. JIT compilation would be nice.
+
+\* Removed temporarily but essentially completed.
 
 ## What can it do right now?
 I could try to write up a complicated paragraph on what exactly it can do, however, I will instead just show you a test script that utilizes most of what the language offers right now.
