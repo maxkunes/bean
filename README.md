@@ -10,7 +10,7 @@ I wanted to write a custom programming language. Not because this is or will be 
 ## What language does this parse?
 One that I wanted to make for the fun of making it.  Most likely has no real world usecase.
 ### What is the langauge like?
-It borrows alot of the its syntax from the great language that is Kotlin. Kotlin is a fantastic language to write in and it just makes sense. 
+It borrows alot of the its syntax from the C family of languages and also from Kotlin (the best JVM based language!).
 ## Goals
 - [x] Evaluate simple code like variable definitions and mathmatical operations on variables.
 - [x] Evaluate functional code. Creating and calling functions.
