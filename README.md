@@ -86,4 +86,4 @@ print_all("h", 3, 1, 1, 0, " world");
 
 ## Tests
 
-All relevent tests can be found in the `tests.cpp` file and the wonderful [Catch2](https://github.com/catchorg/Catch2) library is used for unit testing.
+All relevent tests can be found in the [Tests.cpp](https://github.com/maxkunes/bean/blob/master/tests.cpp) file and the wonderful [Catch2](https://github.com/catchorg/Catch2) library is used for unit testing.
