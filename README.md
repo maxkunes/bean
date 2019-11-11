@@ -34,6 +34,10 @@ fun evaluate_complex_expression {
 return evaluate_complex_expression();
 ```
 
+### AST Visualization for the script above
+
+[https://i.imgur.com/6v4bcqb.png](ast)
+
 ## How to use Bean
 
 ```
