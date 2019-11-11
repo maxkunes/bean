@@ -37,6 +37,7 @@ return evaluate_complex_expression();
 ### AST Visualization for the script above
 
 ![ast](https://i.imgur.com/6v4bcqb.png)
+it is not very pretty, but it is functional.
 
 ## How to use Bean
 
