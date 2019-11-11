@@ -42,13 +42,13 @@ return evaluate_complex_expression();
 ...
 
 try {
-	auto vm = bean_vm();
-    std::cout << vm.eval_result("var x = (1 + 2);")->as_integer() << std::endl;
+auto vm = bean_vm();
+std::cout << vm.eval_result("var x = (1 + 2);")->as_integer() << std::endl;
 }
 catch (const std::exception& e)
 {
-		std::cout << "Exception occured while parsing or evaluating script." << std::endl;
-		std::cout << e.what() << std::endl;
+	std::cout << "Exception occured while parsing or evaluating script." << std::endl;
+	std::cout << e.what() << std::endl;
 }
 ```
 
