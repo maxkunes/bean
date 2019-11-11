@@ -18,7 +18,7 @@ int main(int argc, char* argv[])
 		auto& state = vm.get_state();
 
 
-		//auto result = vm.eval_file_result("C:\\Users\\madmin\\Documents\\Github\\bean\\lang.cs");
+		auto result = vm.eval_file_result("C:\\Users\\madmin\\Documents\\Github\\bean\\lang.cs");
 		//auto result = vm.eval_result("var x = (1 + 2);");
 		
 		//std::cout << vm.eval_result("get_pi()")->as_double() << std::endl;

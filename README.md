@@ -20,13 +20,17 @@ It borrows alot of the its syntax from the great language that is Kotlin. Kotlin
 6. Integrate with LLVM or transcode to C++. JIT compilation would be nice.
 
 ## What can it do right now?
-Right now it can interpret and run mathmatical expressions. From `2 + 2` to `(4 + 5 * (2 + 3) * 5) * 5 * (4/3)` and a few operators in between.
-This is important as the code to parse an expression due to operator precedence is built, working and tested which will be used by the ast builder for the language.
-The precedence followed is PEMDAS left to right. Future operator precedence for non mathmatical operations will likely be based off the C/C++ standard. Examples of those types of operators would be the xor and shift operators.
-1. Parentheses
-2. Exponents (Experimental and likely to be removed ^ and pow operators)
-3. Muliplication and Division (Precedence is left-right)
-4. Addition and Subtraction (Precedence is left-right)
+I could try to write up a complicated paragraph on what exactly it can do, however, I will instead just show you a test script that utilizes most of what the language offers right now.
+
+```
+fun evaluate_complex_expression {
+    var expr_value = (6.5 * 2 + 8.5) * (4 / 2) ^ 2;
+    return expr_value;
+}
+
+// returns to c++ a bean_object_double instance with a value of 86.0
+return evaluate_complex_expression();
+```
 
 
 ## Syntax

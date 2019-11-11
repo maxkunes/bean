@@ -1,8 +1,6 @@
-fun get_pi_approx {
-    var pi = (21 + 1) / (6 + 1);
-    return pi;
+fun evaluate_complex_expression {
+    var expr_value = (6.5 * 2 + 8.5) * (4 / 2) ^ 2;
+    return expr_value;
 }
 
-get_pi();
-
-return get_pi_approx();
+return evaluate_complex_expression();
