@@ -129,7 +129,7 @@ TEST_CASE("VM")
 	SECTION("Variables")
 	{
 		{
-			auto [state, result] = eval_simple_all("var x = (1 + 2)");
+			auto [state, result] = eval_simple_all("var x = (1 + 2);");
 			REQUIRE(state.variables.size() == 1);
 			REQUIRE(state.variables.count("x") == 1);
 			REQUIRE(state.variables["x"]->as_int() == 3);
@@ -154,14 +154,19 @@ TEST_CASE("VM")
 		auto& state = vm.get_state();
 		
 		SECTION("Short Hand") {
-			vm.eval("fun get_pi { 3.14159265 }");
+			vm.eval("fun get_pi { return 3.14159265 }");
 			REQUIRE(are_same(vm.eval_result("get_pi()")->as_double(), 3.14159265));
 
-			vm.eval("fun get_one { 1 }");
+			vm.eval("fun get_one { return 1 }");
 			REQUIRE(vm.eval_result("get_one()")->as_int() == 1);
 
-			vm.eval("var x = get_one()");
+			vm.eval("var x = get_one();");
 			REQUIRE(state.variables["x"]->as_int() == 1);
+
+			vm.eval("fun get_pi_approx { var pi = 22 / 7; return pi; }");
+			vm.eval("var pi_result = get_pi_approx();");
+			REQUIRE(are_same(vm.eval_result("get_pi_approx()")->as_double(), double(22.0) / double(7.0)));
+			
 		}
 	}
 

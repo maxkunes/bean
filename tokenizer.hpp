@@ -34,6 +34,7 @@ enum class token_type
 {
 	invalid,
 	space,
+	comma,
 	lparen,
 	rparen,
 	lbrace,
@@ -52,8 +53,7 @@ enum class token_type
 	forward_slash,
 	tokentype_end,
 	carrot,
-	pow,
-	var
+	pow
 };
 
 inline const char* to_string(token_type e)
@@ -62,6 +62,7 @@ inline const char* to_string(token_type e)
 	{
 	case token_type::invalid: return "invalid";
 	case token_type::space: return "space";
+	case token_type::comma: return "comma";
 	case token_type::lparen: return "lparen";
 	case token_type::rparen: return "rparen";
 	case token_type::lbrace: return "lbrace";
@@ -81,7 +82,6 @@ inline const char* to_string(token_type e)
 	case token_type::forward_slash: return "forward slash";
 	case token_type::carrot: return "carrot";
 	case token_type::pow: return "pow";
-	case token_type::var: return "var";
 	default: return "unknown";
 	}
 }
@@ -202,6 +202,7 @@ using tokendelim_array = std::vector<token_delim>;
 
 const static tokendelim_array tokenDelims_ = {
 		{" ", token_type::space},
+		{",", token_type::comma},
 		{"(", token_type::lparen},
 		{")", token_type::rparen},
 		{"{", token_type::lbrace},
@@ -218,7 +219,6 @@ const static tokendelim_array tokenDelims_ = {
 		{"/", token_type::forward_slash},
 		{"^", token_type::carrot},
 		{"pow", token_type::pow},
-		{"var", token_type::var},
 		{"\n", token_type::newline},
 
 };
@@ -314,6 +314,17 @@ public:
 		}), tokens_.end());
 	}
 
+	auto here_details()
+	{
+		return std::make_tuple(here(), here().get_type(), here().get_text());
+	}
+
+	auto next_details()
+	{
+		next();
+		return here_details();
+	}
+	
 	token& here()
 	{
 		return get_or_invalid(token_index_);
@@ -379,16 +390,60 @@ public:
 		return token_index_;
 	}
 
+	token_iterator get_rest()
+	{
+		return token_iterator(token_array(tokens_.begin() + get_index() + 1, tokens_.begin() + size()));
+	}
+
+	std::vector<token_iterator> split(const token_type delimiter)
+	{
+		std::vector<token_iterator> result;
+
+		int last_split = 0;
+		
+		for(int i = 0; i < size();i++)
+		{
+			if(get_or_invalid(i).get_type() == delimiter)
+			{
+				result.push_back(splice(last_split + 1, i));
+				last_split = i;
+			}
+		}
+
+		result.push_back(splice(last_split + 1, size()));
+	
+
+		return result;
+	}
+	
 	token_iterator splice(const std::uint32_t start, const std::uint32_t end)
 	{
 		return token_iterator(token_array(tokens_.begin() + start, tokens_.begin() + end));
 	}
 
+	std::uint32_t find_first_of(const token_type type)
+	{
+		const std::uint32_t o_pos = get_index();
+
+		while (next().is_valid())
+		{
+			if (here().get_type() == type) {
+				const std::uint32_t found_pos = get_index();
+				jump_to(o_pos);
+				return found_pos;
+			}
+		}
+
+		jump_to(o_pos);
+
+		return invalid_token_index;
+	}
+	
 	std::uint32_t find_last_pos_of_open_close(const token_type open, const token_type close) {
 
 		std::uint32_t stack = 0;
 
-		std::uint32_t o_pos = get_index();
+		const std::uint32_t o_pos = get_index();
 
 		while (next().is_valid())
 		{
@@ -397,7 +452,7 @@ public:
 			if (here().get_type() == close) {
 				stack--;
 				if (stack == 0) {
-					std::uint32_t found_pos = get_index();
+					const std::uint32_t found_pos = get_index();
 					jump_to(o_pos);
 					return found_pos;
 				}
@@ -414,14 +469,19 @@ public:
 		return tokens_;
 	}
 
-	std::size_t get_size() const
+	std::size_t size() const
 	{
 		return tokens_.size();
 	}
 
+	bool empty() const
+	{
+		return size() == 0;
+	}
+
 	std::uint32_t find_rightmost_of(const token_type type, const bool avoidParen = true)
 	{
-		for(int i = get_size() - 1; i >= 0; i--)
+		for(int i = size() - 1; i >= int(token_index_); i--)
 		{
 			auto tokenType = get_or_invalid(i).get_type();
 
@@ -488,9 +548,6 @@ public:
 	{
 		const std::vector<std::vector<token_type>> typeOrder = {
 			{
-				token_type::var
-			},
-			{
 				token_type::equal
 			},
 			{
@@ -516,7 +573,7 @@ public:
 		}
 
 		// If we don't find a operator, just go left to right and return the first symbol.
-		for(int i = 0; i < this->get_size(); i++)
+		for(int i = token_index_; i < this->size(); i++)
 		{
 			if(get_or_invalid(i).get_type() == token_type::symbol)
 			{
@@ -532,8 +589,8 @@ public:
 		if(get_or_invalid(index).is_valid())
 		{
 			tokens_.erase(tokens_.begin() + index);
-			
-			if (token_index_ >= tokens_.size())
+
+			if (token_index_ >= tokens_.size() && token_index_ != invalid_token_index)
 				token_index_--;
 		}
 	}
