@@ -14,12 +14,10 @@ It borrows alot of the its syntax from the C family of languages and also from K
 ## Goals
 - [x] Evaluate simple code like variable definitions and mathmatical operations on variables.
 - [x] Evaluate functional code. Creating and calling functions.
-- [x] Evaluate external functional code. Interfacing with the parent C++ application through vm function calls. \* 
+- [x] Evaluate external functional code. Interfacing with the parent C++ application through vm function calls.
 - [ ] Custom types like classes and structures.
 - [ ] Will have to figure that out if we every get here.
 - [ ] Integrate with LLVM or transcode to C++. JIT compilation would be nice.
-
-\* Removed temporarily but essentially completed.
 
 ## What can it do right now?
 I could try to write up a complicated paragraph on what exactly it can do, however, I will instead just show you a test script that utilizes most of what the language offers right now.
@@ -32,6 +30,31 @@ fun evaluate_complex_expression {
 
 // returns to c++ a bean_object_double instance with a value of 86.0
 return evaluate_complex_expression();
+```
+
+Bean also supports seemless C++ function binding through type deduction templates. Currently, raw function binding and std::function are supported with plain lamdas to come later. Right now, only two basic types can be bound, Integer and Double. This is because these are currently the only integral Bean types. Binding a new type takes a few lines of boilerplate code so when new integral Bean types are added I will also bind them.
+
+Simple example:
+
+```
+
+std::function<std::int32_t(std::int32_t, double)> add_int_double = [&](std::int32_t a, double b) {
+	return std::int32_t(a + b);
+};
+
+You can also use a standard function to bind with the same binding code as std::function:
+std::int32_t add_int_double(std::int32_t a, double b) {
+	return std::int32_t(a + b);
+};
+
+
+auto vm = bean_vm();
+vm.bind_function("add_int_double", do_something);
+
+auto res = vm.eval_result("add_int_double(1, 2)");
+
+REQUIRE(res->as_int() == 3);
+
 ```
 
 ### AST Visualization for the script above
