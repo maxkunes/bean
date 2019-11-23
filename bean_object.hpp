@@ -108,17 +108,17 @@ public:
 		return type_;
 	}
 
-	std::int32_t as_int()
+	std::int32_t& as_int()
 	{
 		return as<std::int32_t>();
 	}
 
-	double as_double()
+	double& as_double()
 	{
 		return as<double>();
 	}
 
-	template<typename T> T as()
+	template<typename T> T& as()
 	{
 		return *static_cast<T*>(object_);
 	}

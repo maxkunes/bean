@@ -53,34 +53,47 @@ public:
 	static std::shared_ptr<ast> parse(const token_array& tokens, bean_state& state);
 };
 
-using bean_objects = std::vector<std::shared_ptr<bean_object>>;
-using bean_function_decl = std::function<bean_objects(bean_objects&)>;
-
+using bean_object_ptr = std::shared_ptr<bean_object>;
+using bean_objects = std::vector<bean_object_ptr>;
+using bean_function_caller = std::function<bean_object_ptr(bean_state&)>;
 
 class bean_function
 {
 public:
-	explicit bean_function(bean_function_decl& fun, const std::string name)
+	explicit bean_function(const std::string& name)
 	{
-		fun_ = std::move(fun);
 		name_ = name;
-		//parameter_types_ = parameter_types;
-	}
-
-	bean_objects operator()(bean_objects& params) const
-	{
-		return fun_(params);
 	}
 
 	[[nodiscard]] std::string get_name() const
 	{
 		return name_;
 	}
+
+	std::shared_ptr<ast> get_ast()
+	{
+		return func_ast_;
+	}
+
+	void set_ast(std::shared_ptr<ast> ast_)
+	{
+		func_ast_ = ast_;
+	}
+
+	void set_caller(bean_function_caller caller_)
+	{
+		func_caller_ = caller_;
+	}
+
+	bean_function_caller& get_caller()
+	{
+		return func_caller_;
+	}
 	
 private:
-	bean_function_decl fun_;
 	std::string name_;
-	//std::vector<bean_object_type_descriptor> parameter_types_;
+	std::shared_ptr<ast> func_ast_;
+	bean_function_caller func_caller_;
 };
 
 
@@ -92,7 +105,7 @@ public:
 		variables.clear();
 	}
 
-	std::shared_ptr<ast> get_function(const std::string& name)
+	std::shared_ptr<bean_function> get_function(const std::string& name)
 	{
 		for(auto& fun : functions)
 		{
@@ -104,8 +117,8 @@ public:
 	}
 	
 	std::map<std::string, std::shared_ptr<bean_object>> variables;
-	std::map<std::string, std::shared_ptr<ast>> functions;
-	//std::vector<std::shared_ptr<bean_function>> functions;
+	std::map<std::string, std::shared_ptr<bean_function>> functions;
+	std::vector<std::shared_ptr<bean_object>> parameter_stack;
 };
 
 class ast
@@ -145,7 +158,7 @@ public:
 		children_ = children;
 	}
 
-	std::vector<std::shared_ptr<ast>> get_children() const
+	[[nodiscard]] std::vector<std::shared_ptr<ast>>& get_children()
 	{
 		return children_;
 	}
@@ -328,7 +341,11 @@ public:
 	{
 		const auto function_name = identifier_;
 
-		state.functions[function_name] = get_left();
+		auto new_function = std::make_shared<bean_function>(function_name);
+
+		new_function->set_ast(get_left());
+		
+		state.functions[function_name] = new_function;
 
 		return std::make_shared<bean_object>(BeanObjectType::None);
 	}
@@ -341,7 +358,27 @@ public:
 		const auto function_name = identifier_;
 		const auto target_function = state.get_function(function_name);
 
-		return target_function->eval(state);
+		if (target_function->get_ast())
+		{
+			return target_function->get_ast()->eval(state);
+		}
+		else
+		{
+			state.parameter_stack.clear();
+
+			for(auto& arg : this->get_children())
+			{
+				state.parameter_stack.push_back(arg->eval(state));
+			}
+			
+			auto return_value = target_function->get_caller()(state);
+
+			state.parameter_stack.clear();
+
+			return return_value;
+		}
+
+		throw std::exception("Unsure what to do when calling function!");
 	}
 };
 
@@ -601,9 +638,11 @@ inline std::shared_ptr<ast> ast_builder::parse(const token_array& tokens, bean_s
 							resulting_ast = std::make_shared<ast_function_script_call>();
 							resulting_ast->set_identifier(function_name);
 
-							for(auto& param : parameter_iterators)
+							for(auto& param_iter : parameter_iterators)
 							{
-								resulting_ast->get_children().push_back(parse(param.get_tokens(), state));
+								auto param = parse(param_iter.get_tokens(), state);
+								
+								resulting_ast->get_children().push_back(std::move(param));
 							}
 							
 							ast_list.push_back(resulting_ast);
@@ -612,6 +651,13 @@ inline std::shared_ptr<ast> ast_builder::parse(const token_array& tokens, bean_s
 							last_expresssion_end = parameter_body_end;
 						}
 						
+					}
+					else
+					{
+						std::stringstream error;
+						error << "Invalid token " << token_text << ". Suspected function name!";
+						
+						throw std::exception(error.str().c_str());
 					}
 					
 				}

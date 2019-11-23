@@ -6,6 +6,10 @@
 #include <string>
 #include <fstream>
 #include <streambuf>
+#include "bean_vm_caller.hpp"
+
+
+
 
 class bean_vm
 {
@@ -49,7 +53,22 @@ public:
 	{
 		return state;
 	}
-	
+
+	template<typename Ret, typename ...Args>
+	void bind_function(const std::string& function_name, Ret(__cdecl* func)(Args...))
+	{
+		auto new_function = std::make_shared<bean_function>(function_name);
+		new_function->set_caller(bind_non_member_function(function_name, func));
+		state.functions[function_name] = new_function;
+	}
+
+	template<typename Ret, typename ...Args>
+	void bind_function(const std::string& function_name, std::function<Ret(Args...)> func)
+	{
+		auto new_function = std::make_shared<bean_function>(function_name);
+		new_function->set_caller(bind_non_member_function(function_name, func));
+		state.functions[function_name] = new_function;
+	}
 
 private:
 	bean_state state;

@@ -44,5 +44,8 @@
     <ClInclude Include="fnv1a.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="bean_vm_caller.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -170,45 +170,77 @@ TEST_CASE("VM")
 		}
 	}
 
-	/*
+	
 	SECTION("Binding Functions") {
 
 		{
 			int value = 0;
 
-			bean_function_decl inc_value_cpp = [&](bean_objects& params) -> bean_objects {
+			std::function<void(void)> inc_value_cpp = [&](void) -> void {
 				value++;
-				return bean_objects();
 			};
 
 			auto vm = bean_vm();
 			auto& state = vm.get_state();
-			state.functions.emplace_back(std::make_shared<bean_function>(inc_value_cpp, "inc_value"));
+			vm.bind_function("inc_value", inc_value_cpp);
 
 			auto res = vm.eval_result("inc_value()");
 
 			REQUIRE(value == 1);
 
 		}
+
+
+		{
+
+			std::function<double()> get_double_five = [&]() {
+				return double(5.0);
+			};
+
+			auto vm = bean_vm();
+			auto& state = vm.get_state();
+			vm.bind_function("get_double_five", get_double_five);
+
+			auto res = vm.eval_result("get_double_five()");
+
+			REQUIRE(are_same(res->as_double(), double(5.0)));
+
+		}
+
+		{
+
+			std::function<std::int32_t(std::int32_t, std::int32_t)> add_two_ints = [&](std::int32_t a, std::int32_t b) {
+				return a + b;
+			};
+
+			auto vm = bean_vm();
+			auto& state = vm.get_state();
+			vm.bind_function("add_two_ints", add_two_ints);
+
+			auto res = vm.eval_result("add_two_ints(1, 2)");
+
+			REQUIRE(res->as_int() == 3);
+
+		}
+
+
+		{
+
+			std::function<double(std::int32_t, double)> add_int_double_return_double = [&](std::int32_t a, double b) {
+				return double(a + b);
+			};
+
+			auto vm = bean_vm();
+			auto& state = vm.get_state();
+			vm.bind_function("add_int_double_return_double", add_int_double_return_double);
+
+			auto res = vm.eval_result("add_int_double_return_double(1, 2.1)");
+
+			REQUIRE(are_same(res->as_double(), double(3.1)));
+
+		}
 	}
 
-	{
-
-		bean_function_decl get_pi_cpp = [&](bean_objects& params) -> bean_objects {
-			bean_objects returnValues;
-			returnValues.push_back(std::make_shared<bean_object_double>(3.14159265));
-			return returnValues;
-		};
-
-		auto vm = bean_vm();
-		auto& state = vm.get_state();
-		state.functions.emplace_back(std::make_shared<bean_function>(get_pi_cpp, "pi"));
-
-		vm.eval_result("var x = pi()");
-
-		REQUIRE(state.variables.count("x") == 1);
-		REQUIRE(are_same(state.variables["x"]->as_double(), 3.14159265));
-
-	}
-	*/
+	
+	
 }

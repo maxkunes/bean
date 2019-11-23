@@ -405,7 +405,7 @@ public:
 		{
 			if(get_or_invalid(i).get_type() == delimiter)
 			{
-				result.push_back(splice(last_split + 1, i));
+				result.push_back(splice(last_split + 0, i));
 				last_split = i;
 			}
 		}

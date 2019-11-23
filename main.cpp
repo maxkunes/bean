@@ -5,7 +5,10 @@
 #include "catch.hpp"
 #include "bean_vm.hpp"
 
-
+void add(double a, std::int32_t b)
+{
+	//return a + b;
+}
 
 int main(int argc, char* argv[])
 {
@@ -15,14 +18,12 @@ int main(int argc, char* argv[])
 	
 	try {
 		auto vm = bean_vm();
+
+		vm.bind_function("add", add);
+
 		auto& state = vm.get_state();
 
-
-		auto result = vm.eval_file_result("C:\\Users\\madmin\\Documents\\Github\\bean\\lang.cs");
-		//auto result = vm.eval_result("var x = (1 + 2);");
-		
-		//std::cout << vm.eval_result("get_pi()")->as_double() << std::endl;
-
+		auto result = vm.eval_result("add(2.1, 1);");
 
 		std::cout << vm.get_state().variables.size() << std::endl;
 	}
