@@ -12,7 +12,7 @@ namespace bean
 	}
 
 
-	nlohmann::json ast_to_json(const std::shared_ptr<ast>& node)
+	nlohmann::json ast_to_json(const std::shared_ptr<ast>& node, bean_state& state)
 	{
 		nlohmann::json output = {};
 
@@ -23,10 +23,10 @@ namespace bean
 	
 		output["type"] = node->to_string();
 
-		//if(!node->get_identifier().empty())
-		//{
-		//	output["identifier"] = node->get_identifier();
-		//}
+		auto str_rep = node->eval(state)->to_string();
+
+		//if(strstr(str_rep.c_str(), "Identifier : to_string") < 0)
+		output["identifier"] = node->eval(state)->to_string();
 		
 		auto& children = node->get_children();
 
@@ -38,7 +38,7 @@ namespace bean
 		
 		for(auto& child : children)
 		{
-			auto child_json = ast_to_json(child);
+			auto child_json = ast_to_json(child, state);
 			
 			output["children"].push_back(child_json);
 		}
@@ -56,7 +56,7 @@ namespace bean
 
 		auto res = ast_builder::parse(tokens, state);
 
-		return ast_to_json(res);
+		return ast_to_json(res, state);
 	}
 
 	
