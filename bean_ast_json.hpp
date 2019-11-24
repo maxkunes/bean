@@ -21,12 +21,12 @@ namespace bean
 			return output;
 		}
 	
-		output["type"] = get_type(node);
+		output["type"] = node->to_string();
 
-		if(!node->get_identifier().empty())
-		{
-			output["identifier"] = node->get_identifier();
-		}
+		//if(!node->get_identifier().empty())
+		//{
+		//	output["identifier"] = node->get_identifier();
+		//}
 		
 		auto& children = node->get_children();
 

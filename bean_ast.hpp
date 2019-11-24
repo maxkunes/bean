@@ -5,6 +5,7 @@
 #include <map>
 #include "bean_object.hpp"
 #include "tokenizer.hpp"
+#include <iomanip>
 
 namespace bean {
 
@@ -194,6 +195,8 @@ namespace bean {
 			return identifier_;
 		}
 
+		virtual std::string to_string() = 0;
+
 	protected:
 		std::vector<std::shared_ptr<ast>> children_;
 		std::string identifier_;
@@ -211,6 +214,13 @@ namespace bean {
 			stream >> doubleValue;
 			return std::make_shared<bean_object_double>(doubleValue);
 		}
+
+		virtual std::string to_string() override
+		{
+			std::stringstream stream;
+			stream << "Double = " << std::setprecision(4) << identifier_;
+			return stream.str();
+		}
 	};
 
 	class ast_value_integer final : public ast
@@ -226,6 +236,13 @@ namespace bean {
 			stream >> intValue;
 			return std::make_shared<bean_object_integer>(intValue);
 		}
+		
+		virtual std::string to_string() override
+		{
+			std::stringstream stream;
+			stream << "Integer = " << identifier_;
+			return stream.str();
+		}
 	};
 
 
@@ -237,6 +254,13 @@ namespace bean {
 		{
 			return get_left()->eval(state)->lh_plus(get_right()->eval(state));
 		}
+
+		virtual std::string to_string() override
+		{
+			std::stringstream stream;
+			stream << "Plus";
+			return stream.str();
+		}
 	};
 
 	class ast_minus final : public ast
@@ -245,6 +269,13 @@ namespace bean {
 		virtual std::shared_ptr<bean_object> eval(bean_state& state) override
 		{
 			return get_left()->eval(state)->lh_minus(get_right()->eval(state));
+		}
+
+		virtual std::string to_string() override
+		{
+			std::stringstream stream;
+			stream << "Minus";
+			return stream.str();
 		}
 	};
 
@@ -255,6 +286,13 @@ namespace bean {
 		{
 			return get_left()->eval(state)->lh_pow(get_right()->eval(state));
 		}
+
+		virtual std::string to_string() override
+		{
+			std::stringstream stream;
+			stream << "Exponent";
+			return stream.str();
+		}
 	};
 
 	class ast_multiply final : public ast
@@ -264,6 +302,13 @@ namespace bean {
 		{
 			return get_left()->eval(state)->lh_multiply(get_right()->eval(state));
 		}
+
+		virtual std::string to_string() override
+		{
+			std::stringstream stream;
+			stream << "Multiply";
+			return stream.str();
+		}
 	};
 
 	class ast_divide final : public ast
@@ -272,6 +317,13 @@ namespace bean {
 		virtual std::shared_ptr<bean_object> eval(bean_state& state) override
 		{
 			return get_left()->eval(state)->lh_divide(get_right()->eval(state));
+		}
+
+		virtual std::string to_string() override
+		{
+			std::stringstream stream;
+			stream << "Divide";
+			return stream.str();
 		}
 	};
 
@@ -286,6 +338,13 @@ namespace bean {
 
 			return std::make_shared<bean_object>(BeanObjectType::None);
 		}
+
+		virtual std::string to_string() override
+		{
+			std::stringstream stream;
+			stream << "var x = " << identifier_;
+			return stream.str();
+		}
 	};
 
 	class ast_variable_reference final : public ast
@@ -297,6 +356,13 @@ namespace bean {
 
 			return state.variables[variableName];
 		}
+
+		virtual std::string to_string() override
+		{
+			std::stringstream stream;
+			stream << "reference to " << identifier_;
+			return stream.str();
+		}
 	};
 
 	class ast_return final : public ast
@@ -304,6 +370,13 @@ namespace bean {
 		virtual std::shared_ptr<bean_object> eval(bean_state& state) override
 		{
 			return get_left()->eval(state);
+		}
+
+		virtual std::string to_string() override
+		{
+			std::stringstream stream;
+			stream << "return";
+			return stream.str();
 		}
 	};
 
@@ -317,6 +390,13 @@ namespace bean {
 			state.variables[varName] = get_left()->eval(state);
 
 			return std::make_shared<bean_object>(BeanObjectType::None);
+		}
+
+		virtual std::string to_string() override
+		{
+			std::stringstream stream;
+			stream << "create and set " << identifier_;
+			return stream.str();
 		}
 	};
 
@@ -334,6 +414,13 @@ namespace bean {
 
 			return std::make_shared<bean_object>(BeanObjectType::None);
 		}
+
+		virtual std::string to_string() override
+		{
+			std::stringstream stream;
+			stream << "set " << identifier_;
+			return stream.str();
+		}
 	};
 
 	class ast_function final : public ast {
@@ -349,6 +436,13 @@ namespace bean {
 			state.functions[function_name] = new_function;
 
 			return std::make_shared<bean_object>(BeanObjectType::None);
+		}
+
+		virtual std::string to_string() override
+		{
+			std::stringstream stream;
+			stream << "define function " << identifier_;
+			return stream.str();
 		}
 	};
 
@@ -381,6 +475,13 @@ namespace bean {
 
 			throw std::exception("Unsure what to do when calling function!");
 		}
+
+		virtual std::string to_string() override
+		{
+			std::stringstream stream;
+			stream << "call function " << identifier_;
+			return stream.str();
+		}
 	};
 
 	class ast_statement_list final : public ast
@@ -397,36 +498,15 @@ namespace bean {
 
 			return std::make_shared<bean_object_none>();
 		}
-	};
 
-	class ast_function_call final : public ast
-	{
-	public:
-		virtual std::shared_ptr<bean_object> eval(bean_state& state) override
+		virtual std::string to_string() override
 		{
-			/*
-			const auto functionName = left_->get_value().get_text();
-			const auto targetFunction = state.get_function(functionName);
-
-			if (!targetFunction) {
-				throw std::exception("Function to call does not exist!");
-			}
-			bean_objects params;
-
-			if (right_) {
-				params.push_back(right_->eval(state));
-			}
-
-			auto function_return = targetFunction->operator()(params);
-
-			if (function_return.size() == 0)
-				function_return.push_back(std::make_shared<bean_object>(BeanObjectType::INVALID));
-
-			return function_return[0];
-			*/
-			return std::make_shared<bean_object>(BeanObjectType::None);
+			std::stringstream stream;
+			stream << "statement list";
+			return stream.str();
 		}
 	};
+
 	inline std::shared_ptr<ast> ast_builder::parse(const token_array& tokens, bean_state& state)
 	{
 		token_iterator iterator(tokens);
