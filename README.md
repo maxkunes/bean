@@ -34,7 +34,7 @@ return evaluate_complex_expression();
 
 ### AST Visualization for the script above
 
-![ast](https://i.imgur.com/CLVaD8U.png)
+![ast](https://i.imgur.com/Cs1e2ta.png)
 it is not very pretty, but it is functional.
 
 Bean also supports seemless C++ function binding through type deduction templates. Currently, raw function binding and std::function are supported with plain lamdas to come later. Right now, only two basic types can be bound, Integer and Double. This is because these are currently the only integral Bean types. Binding a new type takes a few lines of boilerplate code so when new integral Bean types are added I will also bind them.
