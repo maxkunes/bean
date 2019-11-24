@@ -9,67 +9,69 @@
 #include "bean_vm_caller.hpp"
 
 
+namespace bean {
 
-
-class bean_vm
-{
-public:
-
-	std::shared_ptr<bean_object> eval_result(const std::string& script)
+	class bean_vm
 	{
+	public:
 
-		if (script.empty()) return std::make_shared<bean_object>(BeanObjectType::None);
+		std::shared_ptr<bean_object> eval_result(const std::string& script)
+		{
 
-		tokenizer token_gen;
+			if (script.empty()) return std::make_shared<bean_object>(BeanObjectType::None);
 
-		const auto tokens = tokenizer::tokenize(script);
-		
-		auto res = ast_builder::parse(tokens, state);
+			tokenizer token_gen;
 
-		return res->eval(state);
-	}
+			const auto tokens = tokenizer::tokenize(script);
 
-	void eval(const std::string& script)
-	{
-		eval_result(script);
-	}
+			auto res = ast_builder::parse(tokens, state);
 
-	std::shared_ptr<bean_object>  eval_file_result(const std::string& file_path)
-	{
-		std::ifstream t(file_path);
+			return res->eval(state);
+		}
 
-		const std::string str((std::istreambuf_iterator<char>(t)),
-			std::istreambuf_iterator<char>());
-		
-		return eval_result(str);
-	}
-	
-	void eval_file(const std::string& file_path)
-	{
-		eval_file_result(file_path);
-	}
-	
-	bean_state& get_state()
-	{
-		return state;
-	}
+		void eval(const std::string& script)
+		{
+			eval_result(script);
+		}
 
-	template<typename Ret, typename ...Args>
-	void bind_function(const std::string& function_name, Ret(__cdecl* func)(Args...))
-	{
-		auto new_function = std::make_shared<bean_function>(function_name);
-		new_function->set_caller(bind_non_member_function(function_name, func));
-		state.functions[function_name] = new_function;
-	}
+		std::shared_ptr<bean_object>  eval_file_result(const std::string& file_path)
+		{
+			std::ifstream t(file_path);
 
-	template<typename Ret, typename ...Args>
-	void bind_function(const std::string& function_name, std::function<Ret(Args...)> func)
-	{
-		auto new_function = std::make_shared<bean_function>(function_name);
-		new_function->set_caller(bind_non_member_function(function_name, func));
-		state.functions[function_name] = new_function;
-	}
+			const std::string str((std::istreambuf_iterator<char>(t)),
+				std::istreambuf_iterator<char>());
 
-private:
-	bean_state state;
-};
+			return eval_result(str);
+		}
+
+		void eval_file(const std::string& file_path)
+		{
+			eval_file_result(file_path);
+		}
+
+		bean_state& get_state()
+		{
+			return state;
+		}
+
+		template<typename Ret, typename ...Args>
+		void bind_function(const std::string& function_name, Ret(__cdecl* func)(Args...))
+		{
+			auto new_function = std::make_shared<bean_function>(function_name);
+			new_function->set_caller(bind_non_member_function(function_name, func));
+			state.functions[function_name] = new_function;
+		}
+
+		template<typename Ret, typename ...Args>
+		void bind_function(const std::string& function_name, std::function<Ret(Args...)> func)
+		{
+			auto new_function = std::make_shared<bean_function>(function_name);
+			new_function->set_caller(bind_non_member_function(function_name, func));
+			state.functions[function_name] = new_function;
+		}
+
+	private:
+		bean_state state;
+	};
+
+}

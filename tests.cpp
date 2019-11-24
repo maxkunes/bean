@@ -4,6 +4,8 @@
 #include "bean_ast.hpp"
 #include "bean_vm.hpp"
 
+using namespace bean;
+
 static std::pair<bean_state, std::shared_ptr<bean_object>> eval_simple_all(const std::string script)
 {
 	auto vm = bean_vm();

@@ -47,5 +47,11 @@
     <ClInclude Include="bean_vm_caller.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="bean_ast_json.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="json.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
